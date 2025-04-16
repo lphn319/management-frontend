@@ -1,0 +1,298 @@
+<div class="employee-container">
+    <div class="employee-header">
+        <h1>Quản lý nhân viên</h1>
+        <div class="actions">
+            <button mat-raised-button color="primary" (click)="openEmployeeDialog()">
+                <mat-icon>add</mat-icon>
+                Thêm nhân viên mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Bộ lọc và tìm kiếm -->
+    <mat-card class="filter-card">
+        <mat-card-content>
+            <div class="filter-container">
+                <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Tìm kiếm nhân viên</mat-label>
+                    <input matInput placeholder="Nhập tên hoặc số điện thoại">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <div class="filter-actions">
+                    <button mat-stroked-button [matMenuTriggerFor]="statusMenu">
+                        <mat-icon>person</mat-icon>
+                        Trạng thái
+                    </button>
+                    <mat-menu #statusMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Đang làm việc</button>
+                        <button mat-menu-item>Đang nghỉ phép</button>
+                        <button mat-menu-item>Đã nghỉ việc</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="departmentMenu">
+                        <mat-icon>business</mat-icon>
+                        Phòng ban
+                    </button>
+                    <mat-menu #departmentMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <ng-container *ngFor="let dept of departments">
+                            <button mat-menu-item>{{ dept.name }}</button>
+                        </ng-container>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="roleMenu">
+                        <mat-icon>assignment_ind</mat-icon>
+                        Chức vụ
+                    </button>
+                    <mat-menu #roleMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <ng-container *ngFor="let role of roles">
+                            <button mat-menu-item>{{ role.name }}</button>
+                        </ng-container>
+                    </mat-menu>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Thống kê nhanh nhân viên -->
+    <div class="stats-container">
+        <mat-card class="stats-card">
+            <div class="stats-icon total">
+                <mat-icon>groups</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Tổng nhân viên</div>
+                <div class="stats-value">{{ employeeStats.total }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon active">
+                <mat-icon>person</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Đang làm việc</div>
+                <div class="stats-value">{{ employeeStats.active }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon on-leave">
+                <mat-icon>time_to_leave</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Đang nghỉ phép</div>
+                <div class="stats-value">{{ employeeStats.onLeave }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon inactive">
+                <mat-icon>person_off</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Đã nghỉ việc</div>
+                <div class="stats-value">{{ employeeStats.inactive }}</div>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Bảng danh sách nhân viên và Danh sách phòng ban (Two-column layout) -->
+    <div class="two-column-layout">
+        <!-- Cột 1: Bảng danh sách nhân viên -->
+        <mat-card class="employee-card">
+            <mat-card-header>
+                <mat-card-title>Danh sách nhân viên</mat-card-title>
+                <button mat-button color="primary" (click)="exportEmployeeData()">
+                    <mat-icon>file_download</mat-icon>
+                    Xuất dữ liệu
+                </button>
+            </mat-card-header>
+            <mat-card-content>
+                <table mat-table [dataSource]="employees" class="employee-table">
+                    <!-- Cột avatar -->
+                    <ng-container matColumnDef="avatar">
+                        <th mat-header-cell *matHeaderCellDef>Ảnh</th>
+                        <td mat-cell *matCellDef="let employee">
+                            <div class="employee-avatar"
+                                [ngStyle]="{'background-color': getAvatarColor(employee.fullName)}">
+                                {{ getInitials(employee.fullName) }}
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột thông tin nhân viên -->
+                    <ng-container matColumnDef="info">
+                        <th mat-header-cell *matHeaderCellDef>Thông tin nhân viên</th>
+                        <td mat-cell *matCellDef="let employee">
+                            <div class="employee-name">{{ employee.fullName }}</div>
+                            <div class="employee-contact">
+                                <mat-icon class="contact-icon">phone</mat-icon> {{ employee.phone }}
+                            </div>
+                            <div class="employee-contact">
+                                <mat-icon class="contact-icon">email</mat-icon> {{ employee.email }}
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột phòng ban -->
+                    <ng-container matColumnDef="department">
+                        <th mat-header-cell *matHeaderCellDef>Phòng ban</th>
+                        <td mat-cell *matCellDef="let employee">
+                            <div class="department-badge">
+                                {{ employee.department.name }}
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột chức vụ -->
+                    <ng-container matColumnDef="role">
+                        <th mat-header-cell *matHeaderCellDef>Chức vụ</th>
+                        <td mat-cell *matCellDef="let employee">
+                            <div class="role-badge"
+                                [ngClass]="{'director': employee.role.id === 1, 'manager': employee.role.id === 2, 'staff': employee.role.id > 2}">
+                                {{ employee.role.name }}
+                            </div>
+                            <div class="hire-date">Vào làm: {{ employee.hireDate | date:'dd/MM/yyyy' }}</div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột lương -->
+                    <ng-container matColumnDef="salary">
+                        <th mat-header-cell *matHeaderCellDef>Lương</th>
+                        <td mat-cell *matCellDef="let employee">
+                            <div class="salary-amount">{{ formatCurrency(employee.salary) }}</div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột trạng thái -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                        <td mat-cell *matCellDef="let employee">
+                            <span class="status-badge" [ngClass]="{
+                                'active': employee.status === 'active',
+                                'inactive': employee.status === 'inactive',
+                                'on-leave': employee.status === 'on_leave'
+                            }">
+                                {{ getStatusText(employee.status) }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột thao tác -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>Thao tác</th>
+                        <td mat-cell *matCellDef="let employee">
+                            <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <mat-menu #actionMenu="matMenu">
+                                <button mat-menu-item (click)="viewEmployeeDetail(employee.id)">
+                                    <mat-icon>visibility</mat-icon>
+                                    <span>Xem chi tiết</span>
+                                </button>
+                                <button mat-menu-item (click)="openEmployeeDialog(employee)">
+                                    <mat-icon>edit</mat-icon>
+                                    <span>Chỉnh sửa</span>
+                                </button>
+                                <button mat-menu-item *ngIf="employee.status !== 'active'"
+                                    (click)="updateStatus(employee.id, 'active')">
+                                    <mat-icon>person</mat-icon>
+                                    <span>Cập nhật: Đang làm việc</span>
+                                </button>
+                                <button mat-menu-item *ngIf="employee.status !== 'on_leave'"
+                                    (click)="updateStatus(employee.id, 'on_leave')">
+                                    <mat-icon>time_to_leave</mat-icon>
+                                    <span>Cập nhật: Đang nghỉ phép</span>
+                                </button>
+                                <button mat-menu-item *ngIf="employee.status !== 'inactive'"
+                                    (click)="updateStatus(employee.id, 'inactive')">
+                                    <mat-icon>person_off</mat-icon>
+                                    <span>Cập nhật: Đã nghỉ việc</span>
+                                </button>
+                                <button mat-menu-item (click)="deleteEmployee(employee.id)">
+                                    <mat-icon color="warn">delete</mat-icon>
+                                    <span>Xóa nhân viên</span>
+                                </button>
+                            </mat-menu>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+
+                <!-- Phân trang -->
+                <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Cột 2: Danh sách phòng ban -->
+        <mat-card class="department-card">
+            <mat-card-header>
+                <mat-card-title>Danh sách phòng ban</mat-card-title>
+                <button mat-button color="primary">
+                    <mat-icon>add</mat-icon>
+
+                </button>
+            </mat-card-header>
+            <mat-card-content>
+                <table mat-table [dataSource]="departments" class="department-table">
+                    <!-- Cột ID phòng ban -->
+                    <ng-container matColumnDef="id">
+                        <th mat-header-cell *matHeaderCellDef>ID</th>
+                        <td mat-cell *matCellDef="let department">{{ department.id }}</td>
+                    </ng-container>
+
+                    <!-- Cột tên phòng ban -->
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Tên phòng ban</th>
+                        <td mat-cell *matCellDef="let department">
+                            <div class="department-name">{{ department.name }}</div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột số nhân viên -->
+                    <ng-container matColumnDef="employees">
+                        <th mat-header-cell *matHeaderCellDef>Số nhân viên</th>
+                        <td mat-cell *matCellDef="let department">
+                            <div class="employee-count">
+                                {{ employeeStats.departments[department.name] || 0 }}
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột thao tác -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>Thao tác</th>
+                        <td mat-cell *matCellDef="let department">
+                            <button mat-icon-button [matMenuTriggerFor]="deptActionMenu">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <mat-menu #deptActionMenu="matMenu">
+                                <button mat-menu-item>
+                                    <mat-icon>edit</mat-icon>
+                                    <span>Chỉnh sửa</span>
+                                </button>
+                                <button mat-menu-item>
+                                    <mat-icon>visibility</mat-icon>
+                                    <span>Xem nhân viên</span>
+                                </button>
+                                <button mat-menu-item>
+                                    <mat-icon color="warn">delete</mat-icon>
+                                    <span>Xóa phòng ban</span>
+                                </button>
+                            </mat-menu>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="['id', 'name', 'employees', 'actions']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['id', 'name', 'employees', 'actions'];"></tr>
+                </table>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

@@ -1,0 +1,217 @@
+<div class="brand-container">
+    <div class="brand-header">
+        <h1>Quản lý thương hiệu</h1>
+        <div class="actions">
+            <button mat-raised-button color="primary" (click)="openBrandDialog()">
+                <mat-icon>add</mat-icon>
+                Thêm thương hiệu mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Bộ lọc và tìm kiếm -->
+    <mat-card class="filter-card">
+        <mat-card-content>
+            <div class="filter-container">
+                <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Tìm kiếm thương hiệu</mat-label>
+                    <input matInput placeholder="Nhập tên thương hiệu">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <div class="filter-actions">
+                    <button mat-stroked-button [matMenuTriggerFor]="statusMenu">
+                        <mat-icon>visibility</mat-icon>
+                        Trạng thái
+                    </button>
+                    <mat-menu #statusMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Đang hoạt động</button>
+                        <button mat-menu-item>Ẩn</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="originMenu">
+                        <mat-icon>public</mat-icon>
+                        Xuất xứ
+                    </button>
+                    <mat-menu #originMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Việt Nam</button>
+                        <button mat-menu-item>Mỹ</button>
+                        <button mat-menu-item>Hàn Quốc</button>
+                        <button mat-menu-item>Nhật Bản</button>
+                        <button mat-menu-item>Trung Quốc</button>
+                        <button mat-menu-item>Khác</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="sortMenu">
+                        <mat-icon>sort</mat-icon>
+                        Sắp xếp
+                    </button>
+                    <mat-menu #sortMenu="matMenu">
+                        <button mat-menu-item>Tên (A-Z)</button>
+                        <button mat-menu-item>Tên (Z-A)</button>
+                        <button mat-menu-item>Sản phẩm (Nhiều nhất)</button>
+                        <button mat-menu-item>Sản phẩm (Ít nhất)</button>
+                        <button mat-menu-item>Mới nhất</button>
+                        <button mat-menu-item>Cũ nhất</button>
+                    </mat-menu>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <div class="brands-layout">
+        <!-- Danh sách thương hiệu -->
+        <mat-card class="brand-list-card">
+            <mat-card-header>
+                <mat-card-title>Danh sách thương hiệu</mat-card-title>
+                <button mat-button color="primary">
+                    <mat-icon>file_download</mat-icon>
+                    Xuất dữ liệu
+                </button>
+            </mat-card-header>
+            <mat-card-content>
+                <table mat-table [dataSource]="brands" class="brand-table">
+                    <!-- Cột logo -->
+                    <ng-container matColumnDef="logo">
+                        <th mat-header-cell *matHeaderCellDef>Logo</th>
+                        <td mat-cell *matCellDef="let brand">
+                            <div class="brand-logo">
+                                <img [src]="brand.logoUrl" [alt]="brand.name"
+                                    onerror="this.src='assets/images/placeholder.jpg'">
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột tên thương hiệu -->
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Tên thương hiệu</th>
+                        <td mat-cell *matCellDef="let brand">
+                            <div class="brand-name">{{ brand.name }}</div>
+                            <div class="brand-description">{{ brand.description }}</div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột xuất xứ -->
+                    <ng-container matColumnDef="origin">
+                        <th mat-header-cell *matHeaderCellDef>Xuất xứ</th>
+                        <td mat-cell *matCellDef="let brand">{{ brand.origin }}</td>
+                    </ng-container>
+
+                    <!-- Cột website -->
+                    <ng-container matColumnDef="website">
+                        <th mat-header-cell *matHeaderCellDef>Website</th>
+                        <td mat-cell *matCellDef="let brand">
+                            <a [href]="brand.website" target="_blank" class="brand-website" *ngIf="brand.website">
+                                {{ brand.website }}
+                                <mat-icon class="website-icon">open_in_new</mat-icon>
+                            </a>
+                            <span *ngIf="!brand.website" class="no-website">Không có</span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột số lượng sản phẩm -->
+                    <ng-container matColumnDef="productCount">
+                        <th mat-header-cell *matHeaderCellDef>Số sản phẩm</th>
+                        <td mat-cell *matCellDef="let brand">{{ brand.productCount }}</td>
+                    </ng-container>
+
+                    <!-- Cột trạng thái -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                        <td mat-cell *matCellDef="let brand">
+                            <span class="status-badge" [ngClass]="{
+                                'active': brand.status === 'active',
+                                'inactive': brand.status === 'inactive'
+                            }">
+                                {{ brand.status === 'active' ? 'Đang hoạt động' : 'Ẩn' }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Cột thao tác -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>Thao tác</th>
+                        <td mat-cell *matCellDef="let brand">
+                            <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <mat-menu #actionMenu="matMenu">
+                                <button mat-menu-item (click)="openBrandDialog(brand)">
+                                    <mat-icon>edit</mat-icon>
+                                    <span>Chỉnh sửa</span>
+                                </button>
+                                <button mat-menu-item
+                                    (click)="updateStatus(brand.id, brand.status === 'active' ? 'inactive' : 'active')">
+                                    <mat-icon>{{ brand.status === 'active' ? 'visibility_off' : 'visibility'
+                                        }}</mat-icon>
+                                    <span>{{ brand.status === 'active' ? 'Ẩn thương hiệu' : 'Hiện thương hiệu' }}</span>
+                                </button>
+                                <button mat-menu-item (click)="deleteBrand(brand.id)">
+                                    <mat-icon color="warn">delete</mat-icon>
+                                    <span>Xóa</span>
+                                </button>
+                                <button mat-menu-item (click)="viewBrandProducts(brand.id)">
+                                    <mat-icon>inventory_2</mat-icon>
+                                    <span>Xem sản phẩm</span>
+                                </button>
+                            </mat-menu>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+
+                <!-- Phân trang -->
+                <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Thương hiệu nổi bật -->
+        <div class="featured-brands">
+            <mat-card class="featured-brands-card">
+                <mat-card-header>
+                    <mat-card-title>Thương hiệu nổi bật</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="featured-brands-list">
+                        <div class="featured-brand-item" *ngFor="let brand of featuredBrands">
+                            <div class="featured-brand-logo">
+                                <img [src]="brand.logoUrl" [alt]="brand.name"
+                                    onerror="this.src='assets/images/placeholder.jpg'">
+                            </div>
+                            <div class="featured-brand-info">
+                                <div class="featured-brand-name">{{ brand.name }}</div>
+                                <div class="featured-brand-count">{{ brand.productCount }} sản phẩm</div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="brand-stats-card">
+                <mat-card-header>
+                    <mat-card-title>Thống kê</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="brand-stats">
+                        <div class="brand-stat-item">
+                            <div class="brand-stat-value">{{ totalBrands }}</div>
+                            <div class="brand-stat-label">Tổng số thương hiệu</div>
+                        </div>
+                        <div class="brand-stat-item">
+                            <div class="brand-stat-value">{{ activeBrands }}</div>
+                            <div class="brand-stat-label">Đang hoạt động</div>
+                        </div>
+                        <div class="brand-stat-item">
+                            <div class="brand-stat-value">{{ inactiveBrands }}</div>
+                            <div class="brand-stat-label">Đang ẩn</div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>

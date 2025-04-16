@@ -1,0 +1,73 @@
+<h2 mat-dialog-title>
+    {{ isEditMode ? 'Chỉnh sửa thương hiệu' : 'Thêm thương hiệu mới' }}
+</h2>
+
+<form [formGroup]="brandForm" (ngSubmit)="onSubmit()">
+    <div mat-dialog-content>
+        <div class="form-grid">
+            <!-- Tên thương hiệu -->
+            <mat-form-field appearance="outline">
+                <mat-label>Tên thương hiệu</mat-label>
+                <input matInput formControlName="name" placeholder="Nhập tên thương hiệu">
+                <mat-error *ngIf="brandForm.get('name')?.hasError('required')">
+                    Tên thương hiệu là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Xuất xứ -->
+            <mat-form-field appearance="outline">
+                <mat-label>Xuất xứ</mat-label>
+                <input matInput formControlName="origin" placeholder="Nhập quốc gia xuất xứ">
+                <mat-error *ngIf="brandForm.get('origin')?.hasError('required')">
+                    Xuất xứ là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- URL logo -->
+            <mat-form-field appearance="outline">
+                <mat-label>URL logo</mat-label>
+                <input matInput formControlName="logoUrl" placeholder="Nhập URL logo thương hiệu">
+                <mat-hint>Để trống để sử dụng logo mặc định</mat-hint>
+            </mat-form-field>
+
+            <!-- Website -->
+            <mat-form-field appearance="outline">
+                <mat-label>Website</mat-label>
+                <input matInput formControlName="website" placeholder="Nhập URL website thương hiệu">
+                <mat-error *ngIf="brandForm.get('website')?.hasError('pattern')">
+                    URL website không hợp lệ
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Trạng thái -->
+            <mat-form-field appearance="outline">
+                <mat-label>Trạng thái</mat-label>
+                <mat-select formControlName="status">
+                    <mat-option value="active">Đang hoạt động</mat-option>
+                    <mat-option value="inactive">Ẩn</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Số lượng sản phẩm (chỉ hiển thị khi chỉnh sửa) -->
+            <mat-form-field appearance="outline" *ngIf="isEditMode">
+                <mat-label>Số lượng sản phẩm</mat-label>
+                <input matInput formControlName="productCount" type="number" readonly>
+                <mat-hint>Không thể chỉnh sửa trực tiếp</mat-hint>
+            </mat-form-field>
+
+            <!-- Mô tả -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Mô tả</mat-label>
+                <textarea matInput formControlName="description" placeholder="Nhập mô tả thương hiệu"
+                    rows="3"></textarea>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">Hủy</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="brandForm.invalid">
+            {{ isEditMode ? 'Lưu' : 'Thêm' }}
+        </button>
+    </div>
+</form>

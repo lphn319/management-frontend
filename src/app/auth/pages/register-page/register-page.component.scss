@@ -1,0 +1,109 @@
+.register-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #89c0ee 0%, #d7e4ee 100%); // Azura gradient
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.register-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.register-content {
+    display: flex;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+
+    @media screen and (max-width: 768px) {
+        flex-direction: column;
+    }
+}
+
+.branding-section {
+    flex: 1;
+    background-color: #2196f3; // Azura primary
+    color: white;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    @media screen and (max-width: 768px) {
+        padding: 30px 20px;
+    }
+}
+
+.logo-container {
+    margin-bottom: 30px;
+
+    .company-logo {
+        height: 60px;
+        filter: brightness(0) invert(1); // Đảm bảo logo trắng trên nền xanh
+    }
+}
+
+.welcome-text {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-description {
+    font-size: 16px;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+.illustration-container {
+    max-width: 100%;
+    margin-top: 20px;
+
+    .register-illustration {
+        max-width: 100%;
+        height: auto;
+        max-height: 300px;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    @media screen and (max-width: 768px) {
+        display: none;
+    }
+}
+
+.form-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 20px;
+
+    @media screen and (max-width: 768px) {
+        padding: 0;
+    }
+}
+
+// Animations
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.register-content {
+    animation: fadeIn 0.5s ease-out forwards;
+}

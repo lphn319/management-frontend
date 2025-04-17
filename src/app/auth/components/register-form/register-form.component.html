@@ -1,1 +1,113 @@
-<p>register-form works!</p>
+<div class="register-form-container">
+    <mat-card class="register-card">
+        <mat-card-header>
+            <mat-card-title>Đăng ký tài khoản</mat-card-title>
+            <mat-card-subtitle>Điền thông tin để tạo tài khoản mới</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+                <!-- Error message -->
+                @if (registerError) {
+                <div class="error-message">
+                    <mat-icon>error_outline</mat-icon>
+                    <span>{{ registerError }}</span>
+                </div>
+                }
+
+                <!-- Full Name field -->
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Họ và tên</mat-label>
+                    <input matInput type="text" formControlName="fullName" placeholder="Nguyễn Văn A" required>
+                    <mat-icon matPrefix>person</mat-icon>
+                    @if (registerForm.get('fullName')?.invalid && (registerForm.get('fullName')?.dirty ||
+                    registerForm.get('fullName')?.touched)) {
+                    <mat-error>{{ getFullNameErrorMessage() }}</mat-error>
+                    }
+                </mat-form-field>
+
+                <!-- Email field -->
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Email</mat-label>
+                    <input matInput type="email" formControlName="email" placeholder="example@email.com" required>
+                    <mat-icon matPrefix>email</mat-icon>
+                    @if (registerForm.get('email')?.invalid && (registerForm.get('email')?.dirty ||
+                    registerForm.get('email')?.touched)) {
+                    <mat-error>{{ getEmailErrorMessage() }}</mat-error>
+                    }
+                </mat-form-field>
+
+                <!-- Phone number field -->
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Số điện thoại</mat-label>
+                    <input matInput type="tel" formControlName="phoneNumber" placeholder="0912345678">
+                    <mat-icon matPrefix>phone</mat-icon>
+                    @if (registerForm.get('phoneNumber')?.invalid && (registerForm.get('phoneNumber')?.dirty ||
+                    registerForm.get('phoneNumber')?.touched)) {
+                    <mat-error>{{ getPhoneErrorMessage() }}</mat-error>
+                    }
+                </mat-form-field>
+
+                <!-- Password field -->
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Mật khẩu</mat-label>
+                    <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" required>
+                    <mat-icon matPrefix>lock</mat-icon>
+                    <button type="button" mat-icon-button matSuffix (click)="togglePasswordVisibility()"
+                        [attr.aria-label]="'Hiện mật khẩu'" [attr.aria-pressed]="!hidePassword">
+                        <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    @if (registerForm.get('password')?.invalid && (registerForm.get('password')?.dirty ||
+                    registerForm.get('password')?.touched)) {
+                    <mat-error>{{ getPasswordErrorMessage() }}</mat-error>
+                    }
+                </mat-form-field>
+
+                <!-- Confirm Password field -->
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Xác nhận mật khẩu</mat-label>
+                    <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword"
+                        required>
+                    <mat-icon matPrefix>lock_outline</mat-icon>
+                    <button type="button" mat-icon-button matSuffix (click)="toggleConfirmPasswordVisibility()"
+                        [attr.aria-label]="'Hiện mật khẩu xác nhận'" [attr.aria-pressed]="!hideConfirmPassword">
+                        <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    @if (registerForm.get('confirmPassword')?.invalid && (registerForm.get('confirmPassword')?.dirty ||
+                    registerForm.get('confirmPassword')?.touched)) {
+                    <mat-error>{{ getConfirmPasswordErrorMessage() }}</mat-error>
+                    }
+                </mat-form-field>
+
+                <!-- Terms and conditions -->
+                <div class="terms-checkbox">
+                    <mat-checkbox formControlName="agreeTerms" color="primary" required>
+                        Tôi đồng ý với <a href="#" class="accent-color">Điều khoản sử dụng</a> và <a href="#"
+                            class="accent-color">Chính sách bảo mật</a>
+                    </mat-checkbox>
+                    @if (registerForm.get('agreeTerms')?.invalid && (registerForm.get('agreeTerms')?.dirty ||
+                    registerForm.get('agreeTerms')?.touched)) {
+                    <mat-error class="terms-error">Bạn cần đồng ý với điều khoản để tiếp tục</mat-error>
+                    }
+                </div>
+
+                <!-- Submit button -->
+                <button type="submit" mat-raised-button color="primary" class="submit-button"
+                    [disabled]="registerForm.invalid || isLoading">
+                    @if (isLoading) {
+                    <mat-spinner diameter="24" class="spinner"></mat-spinner>
+                    <span>Đang xử lý...</span>
+                    } @else {
+                    <span>Đăng ký</span>
+                    }
+                </button>
+
+                <!-- Login link -->
+                <div class="login-link">
+                    <span>Đã có tài khoản? </span>
+                    <a href="login" class="accent-color">Đăng nhập</a>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</div>

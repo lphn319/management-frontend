@@ -7,6 +7,7 @@ export const routes: Routes = [
     // Route mặc định đến trang Home
     { path: '', component: HomeComponent },
     { path: 'login', loadComponent: () => import('./auth/pages/login-page/login-page.component').then(m => m.LoginPageComponent) },
+    { path: 'register', loadComponent: () => import('./auth/pages/register-page/register-page.component').then(m => m.RegisterPageComponent) },
 
     // Portal/Admin routes với MainLayout
     {

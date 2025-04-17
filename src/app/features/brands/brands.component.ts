@@ -16,10 +16,11 @@ import { MatTableModule } from '@angular/material/table';
 import { BrandDialogComponent } from './brand-dialog/brand-dialog.component';
 import { Brand } from './models/brand.model';
 import { BrandService } from './services/brand.service';
-import { finalize } from 'rxjs';
+import { finalize, catchError } from 'rxjs';
 import { BrandRequest } from './models/brand.model';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient } from '@angular/common/http';
+import { ApiResponse, ApiResponseHelper } from '../../shared/models/api-response.model';
 
 @Component({
   selector: 'app-brands',
@@ -56,7 +57,7 @@ export class BrandsComponent implements OnInit {
     private brandService: BrandService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private http: HttpClient // Thêm HttpClient để sử dụng cho debug nếu cần
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
@@ -73,29 +74,35 @@ export class BrandsComponent implements OnInit {
   loadBrands(): void {
     this.isLoading = true;
     this.brandService.getAll()
-      .pipe(finalize(() => this.isLoading = false))
-      .subscribe({
-        next: (data) => {
-          // Kiểm tra xem data có phải là mảng không
-          if (Array.isArray(data)) {
-            this.brands.data = data;
-            console.log('Loaded brands:', data);
-          } else {
-            console.error('Dữ liệu không phải là mảng:', data);
-            this.showNotification('Định dạng dữ liệu không đúng', 'error');
-          }
-        },
-        error: (error) => {
+      .pipe(
+        finalize(() => this.isLoading = false),
+        catchError(error => {
           console.error('Lỗi khi tải dữ liệu thương hiệu:', error);
           this.showNotification('Không thể tải dữ liệu thương hiệu. Vui lòng thử lại sau.', 'error');
+          return [];
+        })
+      )
+      .subscribe(data => {
+        if (Array.isArray(data)) {
+          this.brands.data = data;
+          console.log('Loaded brands:', data);
+        } else {
+          console.error('Dữ liệu không phải là mảng:', data);
+          this.showNotification('Định dạng dữ liệu không đúng', 'error');
         }
       });
   }
 
   // Tải thống kê từ API
   loadStatistics(): void {
-    this.brandService.getStatistics().subscribe({
-      next: (data) => {
+    this.brandService.getStatistics()
+      .pipe(
+        catchError(error => {
+          console.error('Lỗi khi tải thống kê:', error);
+          return [];
+        })
+      )
+      .subscribe(data => {
         if (data) {
           this.totalBrands = data.totalBrands || 0;
           this.activeBrands = data.activeBrands || 0;
@@ -104,37 +111,36 @@ export class BrandsComponent implements OnInit {
         } else {
           console.error('Không có dữ liệu thống kê:', data);
         }
-      },
-      error: (error) => {
-        console.error('Lỗi khi tải thống kê:', error);
-      }
-    });
+      });
   }
 
   // Tải thương hiệu nổi bật từ API
   loadFeaturedBrands(): void {
-    this.brandService.getFeaturedBrands(5).subscribe({
-      next: (data) => {
+    this.brandService.getFeaturedBrands(5)
+      .pipe(
+        catchError(error => {
+          console.error('Lỗi khi tải thương hiệu nổi bật:', error);
+          return [];
+        })
+      )
+      .subscribe(data => {
         if (Array.isArray(data)) {
           this.featuredBrands = data;
           console.log('Loaded featured brands:', data);
         } else {
           console.error('Dữ liệu thương hiệu nổi bật không phải là mảng:', data);
         }
-      },
-      error: (error) => {
-        console.error('Lỗi khi tải thương hiệu nổi bật:', error);
-      }
-    });
+      });
   }
 
   // Debug API để kiểm tra trực tiếp phản hồi
   debugApiCall(): void {
     console.log('Calling API directly...');
-    this.http.get('http://localhost:8085/api/v1/brands').subscribe(
-      (response) => console.log('Raw API response:', response),
-      (error) => console.error('Direct API error:', error)
-    );
+    this.http.get<ApiResponse<Brand[]>>('http://localhost:8085/api/v1/brands')
+      .subscribe({
+        next: (response) => console.log('Raw API response:', response),
+        error: (error) => console.error('Direct API error:', error)
+      });
   }
 
   // Mở dialog thêm/sửa thương hiệu
@@ -159,18 +165,20 @@ export class BrandsComponent implements OnInit {
             status: result.status
           };
 
-          this.brandService.update(result.id, brandRequest).subscribe({
-            next: () => {
+          this.brandService.update(result.id, brandRequest)
+            .pipe(
+              catchError(error => {
+                console.error('Lỗi khi cập nhật thương hiệu:', error);
+                this.showNotification('Không thể cập nhật thương hiệu', 'error');
+                return [];
+              })
+            )
+            .subscribe(() => {
               this.showNotification('Cập nhật thương hiệu thành công', 'success');
               this.loadBrands();
               this.loadStatistics();
               this.loadFeaturedBrands();
-            },
-            error: (error) => {
-              console.error('Lỗi khi cập nhật thương hiệu:', error);
-              this.showNotification('Không thể cập nhật thương hiệu', 'error');
-            }
-          });
+            });
         } else {
           // Thêm thương hiệu mới
           const brandRequest: BrandRequest = {
@@ -182,17 +190,19 @@ export class BrandsComponent implements OnInit {
             status: result.status
           };
 
-          this.brandService.create(brandRequest).subscribe({
-            next: () => {
+          this.brandService.create(brandRequest)
+            .pipe(
+              catchError(error => {
+                console.error('Lỗi khi thêm thương hiệu:', error);
+                this.showNotification('Không thể thêm thương hiệu', 'error');
+                return [];
+              })
+            )
+            .subscribe(() => {
               this.showNotification('Thêm thương hiệu thành công', 'success');
               this.loadBrands();
               this.loadStatistics();
-            },
-            error: (error) => {
-              console.error('Lỗi khi thêm thương hiệu:', error);
-              this.showNotification('Không thể thêm thương hiệu', 'error');
-            }
-          });
+            });
         }
       }
     });
@@ -200,19 +210,21 @@ export class BrandsComponent implements OnInit {
 
   // Cập nhật trạng thái thương hiệu
   updateStatus(id: number, status: 'ACTIVE' | 'INACTIVE'): void {
-    this.brandService.updateStatus(id, status).subscribe({
-      next: () => {
+    this.brandService.updateStatus(id, status)
+      .pipe(
+        catchError(error => {
+          console.error('Lỗi khi cập nhật trạng thái:', error);
+          this.showNotification('Không thể cập nhật trạng thái thương hiệu', 'error');
+          return [];
+        })
+      )
+      .subscribe(() => {
         const statusText = status === 'ACTIVE' ? 'hiện' : 'ẩn';
         this.showNotification(`Thương hiệu đã được ${statusText}`, 'success');
         this.loadBrands();
         this.loadStatistics();
         this.loadFeaturedBrands();
-      },
-      error: (error) => {
-        console.error('Lỗi khi cập nhật trạng thái:', error);
-        this.showNotification('Không thể cập nhật trạng thái thương hiệu', 'error');
-      }
-    });
+      });
   }
 
   // Xóa thương hiệu
@@ -228,24 +240,25 @@ export class BrandsComponent implements OnInit {
         return;
       }
 
-      this.brandService.delete(id).subscribe({
-        next: () => {
+      this.brandService.delete(id)
+        .pipe(
+          catchError(error => {
+            console.error('Lỗi khi xóa thương hiệu:', error);
+            this.showNotification('Không thể xóa thương hiệu', 'error');
+            return [];
+          })
+        )
+        .subscribe(() => {
           this.showNotification('Xóa thương hiệu thành công', 'success');
           this.loadBrands();
           this.loadStatistics();
           this.loadFeaturedBrands();
-        },
-        error: (error) => {
-          console.error('Lỗi khi xóa thương hiệu:', error);
-          this.showNotification('Không thể xóa thương hiệu', 'error');
-        }
-      });
+        });
     }
   }
 
   // Xem sản phẩm của thương hiệu
   viewBrandProducts(id: number): void {
-    // Tùy vào cách điều hướng của ứng dụng của bạn
     console.log(`Xem sản phẩm của thương hiệu ID: ${id}`);
     this.showNotification('Chuyển hướng đến trang sản phẩm', 'info');
     // Ví dụ: this.router.navigate(['/products'], { queryParams: { brandId: id } });

@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Brand, DialogData } from '../models/brand.model';
+import { ApiResponse } from '../../../shared/models/api-response.model';
 
 @Component({
   selector: 'app-brand-dialog',
@@ -45,7 +46,7 @@ export class BrandDialogComponent implements OnInit {
       logoUrl: [this.data.brand?.logoUrl || ''],
       origin: [this.data.brand?.origin || '', Validators.required],
       website: [this.data.brand?.website || '', [Validators.pattern('(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?')]],
-      status: [this.data.brand?.status || 'active'],
+      status: [this.data.brand?.status || 'ACTIVE'], // Lưu ý: Thay đổi để phù hợp với enum
       productCount: [this.data.brand?.productCount || 0]
     });
 

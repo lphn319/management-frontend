@@ -6,7 +6,16 @@ export interface Brand {
     origin: string;
     website?: string;
     productCount: number;
-    status: 'active' | 'inactive';
+    status: 'ACTIVE' | 'INACTIVE'
+}
+
+export interface BrandRequest {
+    name: string;
+    description?: string;
+    logoUrl?: string;
+    origin: string;
+    website?: string;
+    status?: string;
 }
 
 export interface DialogData {

@@ -1,0 +1,120 @@
+<h2 mat-dialog-title>
+    {{ isEditMode ? 'Chỉnh sửa khách hàng' : viewOnly ? 'Chi tiết khách hàng' : 'Thêm khách hàng mới' }}
+</h2>
+
+<form [formGroup]="customerForm" (ngSubmit)="onSubmit()">
+    <div mat-dialog-content>
+        <div class="form-grid">
+            <!-- Thông tin cơ bản -->
+            <div class="section-title full-width">Thông tin cá nhân</div>
+
+            <!-- Họ và tên -->
+            <mat-form-field appearance="outline">
+                <mat-label>Họ và tên</mat-label>
+                <input matInput formControlName="fullName" placeholder="Nhập họ tên khách hàng" [readonly]="viewOnly">
+                <mat-error *ngIf="customerForm.get('fullName')?.hasError('required')">
+                    Họ tên là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field appearance="outline">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" placeholder="Nhập email" type="email" [readonly]="viewOnly">
+                <mat-error *ngIf="customerForm.get('email')?.hasError('required')">
+                    Email là bắt buộc
+                </mat-error>
+                <mat-error *ngIf="customerForm.get('email')?.hasError('email')">
+                    Email không hợp lệ
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Số điện thoại -->
+            <mat-form-field appearance="outline">
+                <mat-label>Số điện thoại</mat-label>
+                <input matInput formControlName="phone" placeholder="Nhập số điện thoại" [readonly]="viewOnly">
+                <mat-error *ngIf="customerForm.get('phone')?.hasError('required')">
+                    Số điện thoại là bắt buộc
+                </mat-error>
+                <mat-error *ngIf="customerForm.get('phone')?.hasError('pattern')">
+                    Số điện thoại không hợp lệ
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Địa chỉ -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Địa chỉ</mat-label>
+                <textarea matInput formControlName="address" placeholder="Nhập địa chỉ khách hàng" rows="2"
+                    [readonly]="viewOnly"></textarea>
+                <mat-error *ngIf="customerForm.get('address')?.hasError('required')">
+                    Địa chỉ là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Thông tin thành viên -->
+            <div class="section-title full-width">Thông tin thành viên</div>
+
+            <!-- Hạng thành viên -->
+            <mat-form-field appearance="outline">
+                <mat-label>Hạng thành viên</mat-label>
+                <mat-select formControlName="membership" [disabled]="viewOnly">
+                    <mat-option value="Thường">Thường</mat-option>
+                    <mat-option value="Bạc">Bạc</mat-option>
+                    <mat-option value="Vàng">Vàng</mat-option>
+                    <mat-option value="Kim cương">Kim cương</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Điểm tích lũy -->
+            <mat-form-field appearance="outline">
+                <mat-label>Điểm tích lũy</mat-label>
+                <input matInput formControlName="points" type="number" min="0" [readonly]="viewOnly">
+            </mat-form-field>
+
+            <!-- Trạng thái -->
+            <mat-form-field appearance="outline">
+                <mat-label>Trạng thái</mat-label>
+                <mat-select formControlName="status" [disabled]="viewOnly">
+                    <mat-option value="active">Đang hoạt động</mat-option>
+                    <mat-option value="inactive">Ngừng hoạt động</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Thông tin đơn hàng (chỉ hiển thị khi chỉnh sửa hoặc xem) -->
+            <div *ngIf="isEditMode || viewOnly" class="section-title full-width">Thông tin đơn hàng</div>
+
+            <!-- Số lượng đơn hàng -->
+            <mat-form-field appearance="outline" *ngIf="isEditMode || viewOnly">
+                <mat-label>Số đơn hàng</mat-label>
+                <input matInput formControlName="orderCount" type="number" readonly>
+                <mat-hint>Không thể chỉnh sửa trực tiếp</mat-hint>
+            </mat-form-field>
+
+            <!-- Tổng chi tiêu -->
+            <mat-form-field appearance="outline" *ngIf="isEditMode || viewOnly">
+                <mat-label>Tổng chi tiêu</mat-label>
+                <input matInput formControlName="totalSpent" type="text" readonly>
+                <mat-hint>Không thể chỉnh sửa trực tiếp</mat-hint>
+            </mat-form-field>
+
+            <!-- Ngày đăng ký -->
+            <mat-form-field appearance="outline" *ngIf="isEditMode || viewOnly">
+                <mat-label>Ngày đăng ký</mat-label>
+                <input matInput formControlName="registeredAt" type="text" readonly>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">
+            {{ viewOnly ? 'Đóng' : 'Hủy' }}
+        </button>
+        <button mat-raised-button color="primary" type="submit" *ngIf="!viewOnly" [disabled]="customerForm.invalid">
+            {{ isEditMode ? 'Lưu' : 'Thêm' }}
+        </button>
+        <button mat-stroked-button color="primary" type="button" *ngIf="viewOnly" (click)="viewCustomerOrders()">
+            <mat-icon>receipt_long</mat-icon>
+            Xem đơn hàng
+        </button>
+    </div>
+</form>

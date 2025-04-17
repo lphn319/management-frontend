@@ -1,0 +1,85 @@
+<h2 mat-dialog-title>
+    {{ isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới' }}
+</h2>
+
+<form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+    <div mat-dialog-content>
+        <div class="form-grid">
+            <!-- Tên sản phẩm -->
+            <mat-form-field appearance="outline">
+                <mat-label>Tên sản phẩm</mat-label>
+                <input matInput formControlName="name" placeholder="Nhập tên sản phẩm">
+                <mat-error *ngIf="productForm.get('name')?.hasError('required')">
+                    Tên sản phẩm là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Mô tả -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Mô tả</mat-label>
+                <textarea matInput formControlName="description" placeholder="Nhập mô tả sản phẩm" rows="3"></textarea>
+            </mat-form-field>
+
+            <!-- Giá -->
+            <mat-form-field appearance="outline">
+                <mat-label>Giá (VNĐ)</mat-label>
+                <input matInput type="number" formControlName="price" placeholder="Nhập giá sản phẩm">
+                <span matSuffix>VNĐ</span>
+                <mat-error *ngIf="productForm.get('price')?.hasError('required')">
+                    Giá sản phẩm là bắt buộc
+                </mat-error>
+                <mat-error *ngIf="productForm.get('price')?.hasError('min')">
+                    Giá sản phẩm không được âm
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Số lượng -->
+            <mat-form-field appearance="outline">
+                <mat-label>Số lượng</mat-label>
+                <input matInput type="number" formControlName="quantity" placeholder="Nhập số lượng sản phẩm">
+                <mat-error *ngIf="productForm.get('quantity')?.hasError('required')">
+                    Số lượng sản phẩm là bắt buộc
+                </mat-error>
+                <mat-error *ngIf="productForm.get('quantity')?.hasError('min')">
+                    Số lượng sản phẩm không được âm
+                </mat-error>
+            </mat-form-field>
+
+            <!-- URL hình ảnh -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>URL hình ảnh</mat-label>
+                <input matInput formControlName="imageUrl" placeholder="Nhập URL hình ảnh sản phẩm">
+            </mat-form-field>
+
+            <!-- Thương hiệu -->
+            <mat-form-field appearance="outline">
+                <mat-label>Thương hiệu</mat-label>
+                <mat-select formControlName="brand">
+                    <mat-option *ngFor="let brand of data.brands" [value]="brand.id">
+                        {{ brand.name }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="productForm.get('brand')?.hasError('required')">
+                    Thương hiệu là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Danh mục -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Danh mục</mat-label>
+                <mat-select formControlName="categories" multiple>
+                    <mat-option *ngFor="let category of data.categories" [value]="category.id">
+                        {{ category.name }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">Hủy</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="productForm.invalid">
+            {{ isEditMode ? 'Lưu' : 'Thêm' }}
+        </button>
+    </div>
+</form>

@@ -1,0 +1,303 @@
+// Biến
+$border-radius: 8px;
+$card-gap: 16px;
+$primary-color: #2196f3; // Azura primary color
+$primary-light: rgba($primary-color, 0.1);
+$accent-color: #4caf50; // Azura accent color
+$error-color: #f44336;
+$warning-color: #ff9800;
+$transition-time: 0.3s;
+$transition-function: cubic-bezier(0.4, 0, 0.2, 1);
+$shadow-light: 0 2px 5px rgba(33, 150, 243, 0.08); // Azura shadow
+$shadow-medium: 0 4px 8px rgba(33, 150, 243, 0.12); // Azura shadow
+$text-secondary: #666;
+
+@mixin transition($property) {
+    transition: $property $transition-time $transition-function;
+    will-change: $property;
+}
+
+h2.mat-dialog-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: $primary-color; // Azura primary color
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba($primary-color, 0.2);
+    letter-spacing: 0.3px;
+}
+
+mat-dialog-content {
+    min-width: 800px;
+    max-width: 1000px;
+    max-height: 75vh;
+    overflow-x: hidden;
+    padding: 8px 24px 16px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    @media (max-width: 1024px) {
+        min-width: auto;
+        max-width: 95vw;
+        padding: 8px 16px;
+    }
+}
+
+.form-container {
+    animation: fade-in 0.4s $transition-function;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Form sections
+.form-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    border-radius: $border-radius;
+    background-color: rgba($primary-color, 0.02);
+    border: 1px solid rgba($primary-color, 0.1);
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: $primary-color;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba($primary-color, 0.1);
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px;
+
+    &.full-width {
+        flex-basis: 100%;
+    }
+}
+
+// Customer type radio buttons
+.customer-type {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+// Products list
+.products-list {
+    margin-bottom: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: $border-radius;
+    overflow: hidden;
+}
+
+.products-header {
+    display: flex;
+    background-color: rgba($primary-color, 0.05);
+    padding: 12px 16px;
+    font-weight: 500;
+    font-size: 14px;
+    color: $text-secondary;
+}
+
+.product-item {
+    display: flex;
+    padding: 16px 16px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+
+    &:first-child {
+        border-top: none;
+    }
+}
+
+.product-col {
+    flex: 3;
+    margin-right: 8px;
+}
+
+.quantity-col,
+.price-col {
+    flex: 1;
+    margin-right: 8px;
+}
+
+.total-col {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.action-col {
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-total {
+    font-weight: 500;
+    color: $primary-color;
+}
+
+.add-product {
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+
+    button {
+        @include transition(all);
+
+        &:hover {
+            background-color: rgba($primary-color, 0.08);
+        }
+    }
+}
+
+// Order summary
+.order-summary {
+    padding: 16px;
+    margin-top: 24px;
+    border-radius: $border-radius;
+    background-color: rgba($primary-color, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+
+    &.total {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba($primary-color, 0.2);
+    }
+}
+
+.summary-label {
+    margin-right: 16px;
+    font-weight: 500;
+    color: $text-secondary;
+}
+
+.summary-value {
+    font-weight: 500;
+
+    &.total-amount {
+        font-size: 18px;
+        color: $primary-color;
+    }
+}
+
+// Custom styling for form fields
+mat-form-field {
+    width: 100%;
+
+    &.mat-form-field-appearance-outline {
+        .mat-form-field-outline {
+            @include transition(color);
+        }
+
+        &.mat-focused {
+            .mat-form-field-outline {
+                color: $primary-color;
+            }
+        }
+
+        &:hover:not(.mat-focused) {
+            .mat-form-field-outline {
+                color: rgba($primary-color, 0.5);
+            }
+        }
+    }
+}
+
+// Custom styling for mat-radio-button
+::ng-deep .mat-radio-button {
+    .mat-radio-outer-circle {
+        border-color: rgba($primary-color, 0.5);
+    }
+
+    &.mat-radio-checked .mat-radio-outer-circle {
+        border-color: $primary-color;
+    }
+
+    .mat-radio-inner-circle {
+        background-color: $primary-color;
+    }
+
+    .mat-radio-ripple .mat-ripple-element {
+        background-color: rgba($primary-color, 0.2);
+    }
+}
+
+// Dialog actions
+mat-dialog-actions {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-bottom: 0;
+    border-top: 1px solid rgba(33, 150, 243, 0.08); // Azura light border
+
+    button {
+        min-width: 100px;
+        @include transition(all);
+
+        &.mat-raised-button {
+            box-shadow: $shadow-light;
+
+            &:not([disabled]):hover {
+                transform: translateY(-2px);
+                box-shadow: $shadow-medium;
+            }
+
+            &:not([disabled]):active {
+                transform: translateY(0);
+            }
+        }
+
+        &.mat-button {
+            &:not([disabled]):hover {
+                background: rgba($primary-color, 0.05);
+            }
+        }
+
+        &[disabled] {
+            opacity: 0.6;
+        }
+
+        mat-icon {
+            margin-right: 4px;
+        }
+    }
+}

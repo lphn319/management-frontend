@@ -1,0 +1,262 @@
+// Biến và mixin
+@use "sass:color";
+
+$border-radius: 8px;
+$card-gap: 16px;
+$primary-color: #3f51b5;
+$success-color: #4caf50;
+$error-color: #f44336;
+$warning-color: #ff9800;
+$info-color: #2196f3;
+$text-secondary: #666;
+
+@mixin flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@mixin card-base {
+    border-radius: $border-radius;
+}
+
+@mixin status-style($color) {
+    background-color: rgba($color, 0.1);
+    color: $color;
+}
+
+// Layout
+.dashboard {
+    &-container {
+        padding: $card-gap;
+    }
+
+    &-header {
+        @include flex-between;
+        margin-bottom: 20px;
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 500;
+        }
+    }
+
+    &-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: $card-gap;
+        margin-bottom: 20px;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+// Cards
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: $card-gap;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    @include card-base;
+
+    .card {
+        &-content {
+            @include flex-between;
+            padding: $card-gap;
+        }
+
+        &-info {
+            .card-title {
+                color: $text-secondary;
+                font-size: 14px;
+                margin-bottom: 4px;
+            }
+
+            .card-value {
+                font-size: 24px;
+                font-weight: 500;
+                margin-bottom: 4px;
+            }
+
+            .card-change {
+                display: flex;
+                align-items: center;
+                font-size: 12px;
+
+                &.positive {
+                    color: $success-color;
+                }
+
+                &.negative {
+                    color: $error-color;
+                }
+
+                mat-icon {
+                    font-size: 16px;
+                    height: 16px;
+                    width: 16px;
+                    margin-right: 4px;
+                }
+            }
+        }
+
+        &-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+
+            mat-icon {
+                font-size: 24px;
+                width: 24px;
+                height: 24px;
+            }
+        }
+    }
+}
+
+// Base card styles
+%card-common {
+    @include card-base;
+    margin-bottom: 20px;
+
+    mat-card-header {
+        @include flex-between;
+        padding: $card-gap;
+
+        mat-card-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+    }
+}
+
+// Charts and Stats
+.chart-card,
+.stats-card {
+    @extend %card-common;
+}
+
+// Tables
+.orders-card,
+.products-card {
+    @extend %card-common;
+}
+
+%table-common {
+    width: 100%;
+
+    .mat-mdc-header-cell {
+        font-weight: 500;
+        color: $text-secondary;
+    }
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+        padding: 0 $card-gap;
+    }
+}
+
+.orders-table,
+.products-table {
+    @extend %table-common;
+}
+
+// Status badges
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+
+    &.completed {
+        @include status-style($success-color);
+    }
+
+    &.shipping {
+        @include status-style($info-color);
+    }
+
+    &.processing {
+        @include status-style($warning-color);
+    }
+
+    &.cancelled {
+        @include status-style($error-color);
+    }
+}
+
+.low-stock {
+    color: $error-color;
+    font-weight: 500;
+}
+
+// Chart styles
+.chart {
+    &-placeholder {
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        padding: $card-gap;
+    }
+
+    &-mock {
+        display: flex;
+        align-items: flex-end;
+        width: 100%;
+        height: 100%;
+
+        .chart-bar {
+            flex: 1;
+            background-color: $primary-color;
+            margin: 0 8px;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.3s ease;
+
+            &:hover {
+                background-color: color.adjust($primary-color, $lightness: 10%);
+            }
+        }
+    }
+}
+
+// Stats styles
+.stat-item {
+    margin-bottom: $card-gap;
+
+    .stat-label {
+        @include flex-between;
+        margin-bottom: 4px;
+        font-size: 14px;
+        color: $text-secondary;
+    }
+
+    .stat-value {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .progress-bar {
+        height: 6px;
+        background-color: #eee;
+        border-radius: 3px;
+        overflow: hidden;
+
+        .progress-fill {
+            height: 100%;
+            background-color: $primary-color;
+            border-radius: 3px;
+        }
+    }
+}

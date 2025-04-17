@@ -15,6 +15,11 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { BrandDialogComponent } from './brand-dialog/brand-dialog.component';
 import { Brand } from './models/brand.model';
+import { BrandService } from './services/brand.service';
+import { finalize } from 'rxjs';
+import { BrandRequest } from './models/brand.model';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-brands',
@@ -29,7 +34,8 @@ import { Brand } from './models/brand.model';
     MatInputModule,
     MatMenuModule,
     MatPaginatorModule,
-    MatTableModule
+    MatTableModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './brands.component.html',
   styleUrl: './brands.component.scss'
@@ -41,139 +47,94 @@ export class BrandsComponent implements OnInit {
   totalBrands: number = 0;
   activeBrands: number = 0;
   inactiveBrands: number = 0;
+  isLoading: boolean = false;
+  defaultImagePath: string = 'assets/images/placeholder.jpg';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
+    private brandService: BrandService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private http: HttpClient // Thêm HttpClient để sử dụng cho debug nếu cần
   ) { }
 
   ngOnInit(): void {
     this.loadBrands();
+    this.loadStatistics();
+    this.loadFeaturedBrands();
   }
 
   ngAfterViewInit() {
     this.brands.paginator = this.paginator;
   }
 
-  // Mock dữ liệu thương hiệu - trong thực tế sẽ được lấy từ API
+  // Tải danh sách thương hiệu từ API
   loadBrands(): void {
-    const mockBrands: Brand[] = [
-      {
-        id: 1,
-        name: 'Apple',
-        description: 'Công ty công nghệ đa quốc gia của Mỹ chuyên thiết kế, phát triển và bán các sản phẩm điện tử',
-        logoUrl: 'assets/images/apple-logo.png',
-        origin: 'Mỹ',
-        website: 'https://www.apple.com',
-        productCount: 32,
-        status: 'active'
+    this.isLoading = true;
+    this.brandService.getAll()
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (data) => {
+          // Kiểm tra xem data có phải là mảng không
+          if (Array.isArray(data)) {
+            this.brands.data = data;
+            console.log('Loaded brands:', data);
+          } else {
+            console.error('Dữ liệu không phải là mảng:', data);
+            this.showNotification('Định dạng dữ liệu không đúng', 'error');
+          }
+        },
+        error: (error) => {
+          console.error('Lỗi khi tải dữ liệu thương hiệu:', error);
+          this.showNotification('Không thể tải dữ liệu thương hiệu. Vui lòng thử lại sau.', 'error');
+        }
+      });
+  }
+
+  // Tải thống kê từ API
+  loadStatistics(): void {
+    this.brandService.getStatistics().subscribe({
+      next: (data) => {
+        if (data) {
+          this.totalBrands = data.totalBrands || 0;
+          this.activeBrands = data.activeBrands || 0;
+          this.inactiveBrands = data.inactiveBrands || 0;
+          console.log('Loaded statistics:', data);
+        } else {
+          console.error('Không có dữ liệu thống kê:', data);
+        }
       },
-      {
-        id: 2,
-        name: 'Samsung',
-        description: 'Tập đoàn đa quốc gia của Hàn Quốc, một trong những nhà sản xuất điện tử tiêu dùng lớn nhất thế giới',
-        logoUrl: 'assets/images/samsung-logo.png',
-        origin: 'Hàn Quốc',
-        website: 'https://www.samsung.com',
-        productCount: 48,
-        status: 'active'
-      },
-      {
-        id: 3,
-        name: 'Sony',
-        description: 'Tập đoàn đa quốc gia của Nhật Bản chuyên về điện tử tiêu dùng, video game và giải trí',
-        logoUrl: 'assets/images/sony-logo.png',
-        origin: 'Nhật Bản',
-        website: 'https://www.sony.com',
-        productCount: 25,
-        status: 'active'
-      },
-      {
-        id: 4,
-        name: 'Dell',
-        description: 'Công ty đa quốc gia của Mỹ phát triển và bán các sản phẩm máy tính và linh kiện liên quan',
-        logoUrl: 'assets/images/dell-logo.png',
-        origin: 'Mỹ',
-        website: 'https://www.dell.com',
-        productCount: 21,
-        status: 'active'
-      },
-      {
-        id: 5,
-        name: 'HP',
-        description: 'Công ty công nghệ thông tin đa quốc gia của Mỹ chuyên về máy tính cá nhân, máy in và các giải pháp phần mềm',
-        logoUrl: 'assets/images/hp-logo.png',
-        origin: 'Mỹ',
-        website: 'https://www.hp.com',
-        productCount: 18,
-        status: 'active'
-      },
-      {
-        id: 6,
-        name: 'Logitech',
-        description: 'Nhà sản xuất phụ kiện máy tính và thiết bị ngoại vi của Thụy Sĩ',
-        logoUrl: 'assets/images/logitech-logo.png',
-        origin: 'Thụy Sĩ',
-        website: 'https://www.logitech.com',
-        productCount: 35,
-        status: 'inactive'
-      },
-      {
-        id: 7,
-        name: 'Microsoft',
-        description: 'Tập đoàn công nghệ đa quốc gia của Mỹ chuyên phát triển phần mềm và thiết bị điện tử',
-        logoUrl: 'assets/images/microsoft-logo.png',
-        origin: 'Mỹ',
-        website: 'https://www.microsoft.com',
-        productCount: 15,
-        status: 'active'
-      },
-      {
-        id: 8,
-        name: 'Xiaomi',
-        description: 'Công ty công nghệ của Trung Quốc chuyên thiết kế và sản xuất điện thoại thông minh, thiết bị thông minh và đồ gia dụng',
-        logoUrl: 'assets/images/xiaomi-logo.png',
-        origin: 'Trung Quốc',
-        website: 'https://www.mi.com',
-        productCount: 42,
-        status: 'active'
-      },
-      {
-        id: 9,
-        name: 'Asus',
-        description: 'Công ty đa quốc gia của Đài Loan chuyên sản xuất phần cứng máy tính, điện thoại và thiết bị điện tử',
-        logoUrl: 'assets/images/asus-logo.png',
-        origin: 'Đài Loan',
-        website: 'https://www.asus.com',
-        productCount: 28,
-        status: 'active'
-      },
-      {
-        id: 10,
-        name: 'LG',
-        description: 'Tập đoàn đa quốc gia của Hàn Quốc chuyên sản xuất đồ điện tử, điện thoại di động và đồ gia dụng',
-        logoUrl: 'assets/images/lg-logo.png',
-        origin: 'Hàn Quốc',
-        website: 'https://www.lg.com',
-        productCount: 22,
-        status: 'inactive'
+      error: (error) => {
+        console.error('Lỗi khi tải thống kê:', error);
       }
-    ];
+    });
+  }
 
-    this.brands.data = mockBrands;
+  // Tải thương hiệu nổi bật từ API
+  loadFeaturedBrands(): void {
+    this.brandService.getFeaturedBrands(5).subscribe({
+      next: (data) => {
+        if (Array.isArray(data)) {
+          this.featuredBrands = data;
+          console.log('Loaded featured brands:', data);
+        } else {
+          console.error('Dữ liệu thương hiệu nổi bật không phải là mảng:', data);
+        }
+      },
+      error: (error) => {
+        console.error('Lỗi khi tải thương hiệu nổi bật:', error);
+      }
+    });
+  }
 
-    // Lấy 5 thương hiệu nổi bật (có số sản phẩm nhiều nhất và đang hoạt động)
-    this.featuredBrands = mockBrands
-      .filter(brand => brand.status === 'active')
-      .sort((a, b) => b.productCount - a.productCount)
-      .slice(0, 5);
-
-    // Tính toán thống kê
-    this.totalBrands = mockBrands.length;
-    this.activeBrands = mockBrands.filter(brand => brand.status === 'active').length;
-    this.inactiveBrands = mockBrands.filter(brand => brand.status === 'inactive').length;
+  // Debug API để kiểm tra trực tiếp phản hồi
+  debugApiCall(): void {
+    console.log('Calling API directly...');
+    this.http.get('http://localhost:8085/api/v1/brands').subscribe(
+      (response) => console.log('Raw API response:', response),
+      (error) => console.error('Direct API error:', error)
+    );
   }
 
   // Mở dialog thêm/sửa thương hiệu
@@ -187,40 +148,75 @@ export class BrandsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.showNotification(
-          brand ? 'Cập nhật thương hiệu thành công' : 'Thêm thương hiệu thành công',
-          'success'
-        );
-        this.loadBrands(); // Refresh dữ liệu
+        if (result.id) {
+          // Cập nhật thương hiệu
+          const brandRequest: BrandRequest = {
+            name: result.name,
+            description: result.description,
+            logoUrl: result.logoUrl,
+            origin: result.origin,
+            website: result.website,
+            status: result.status
+          };
+
+          this.brandService.update(result.id, brandRequest).subscribe({
+            next: () => {
+              this.showNotification('Cập nhật thương hiệu thành công', 'success');
+              this.loadBrands();
+              this.loadStatistics();
+              this.loadFeaturedBrands();
+            },
+            error: (error) => {
+              console.error('Lỗi khi cập nhật thương hiệu:', error);
+              this.showNotification('Không thể cập nhật thương hiệu', 'error');
+            }
+          });
+        } else {
+          // Thêm thương hiệu mới
+          const brandRequest: BrandRequest = {
+            name: result.name,
+            description: result.description,
+            logoUrl: result.logoUrl,
+            origin: result.origin,
+            website: result.website,
+            status: result.status
+          };
+
+          this.brandService.create(brandRequest).subscribe({
+            next: () => {
+              this.showNotification('Thêm thương hiệu thành công', 'success');
+              this.loadBrands();
+              this.loadStatistics();
+            },
+            error: (error) => {
+              console.error('Lỗi khi thêm thương hiệu:', error);
+              this.showNotification('Không thể thêm thương hiệu', 'error');
+            }
+          });
+        }
       }
     });
   }
 
   // Cập nhật trạng thái thương hiệu
-  updateStatus(id: number, status: 'active' | 'inactive'): void {
-    // Trong thực tế, sẽ gọi API để cập nhật
-    const updatedBrands = this.brands.data.map(brand => {
-      if (brand.id === id) {
-        return {
-          ...brand,
-          status: status
-        };
+  updateStatus(id: number, status: 'ACTIVE' | 'INACTIVE'): void {
+    this.brandService.updateStatus(id, status).subscribe({
+      next: () => {
+        const statusText = status === 'ACTIVE' ? 'hiện' : 'ẩn';
+        this.showNotification(`Thương hiệu đã được ${statusText}`, 'success');
+        this.loadBrands();
+        this.loadStatistics();
+        this.loadFeaturedBrands();
+      },
+      error: (error) => {
+        console.error('Lỗi khi cập nhật trạng thái:', error);
+        this.showNotification('Không thể cập nhật trạng thái thương hiệu', 'error');
       }
-      return brand;
     });
-
-    this.brands.data = updatedBrands;
-
-    const statusText = status === 'active' ? 'hiện' : 'ẩn';
-    this.showNotification(`Thương hiệu đã được ${statusText}`, 'success');
-
-    // Cập nhật lại thống kê và thương hiệu nổi bật
-    this.loadBrands();
   }
 
   // Xóa thương hiệu
   deleteBrand(id: number): void {
-    // Trong thực tế, sẽ gọi API để xóa
     if (confirm('Bạn có chắc chắn muốn xóa thương hiệu này?')) {
       // Check if the brand has products
       const brand = this.brands.data.find(b => b.id === id);
@@ -232,20 +228,37 @@ export class BrandsComponent implements OnInit {
         return;
       }
 
-      // Filter out the deleted brand
-      this.brands.data = this.brands.data.filter(brand => brand.id !== id);
-      this.showNotification('Xóa thương hiệu thành công', 'success');
-
-      // Cập nhật lại thống kê và thương hiệu nổi bật
-      this.loadBrands();
+      this.brandService.delete(id).subscribe({
+        next: () => {
+          this.showNotification('Xóa thương hiệu thành công', 'success');
+          this.loadBrands();
+          this.loadStatistics();
+          this.loadFeaturedBrands();
+        },
+        error: (error) => {
+          console.error('Lỗi khi xóa thương hiệu:', error);
+          this.showNotification('Không thể xóa thương hiệu', 'error');
+        }
+      });
     }
   }
 
   // Xem sản phẩm của thương hiệu
   viewBrandProducts(id: number): void {
-    // Trong thực tế, sẽ điều hướng đến trang sản phẩm với bộ lọc thương hiệu
+    // Tùy vào cách điều hướng của ứng dụng của bạn
     console.log(`Xem sản phẩm của thương hiệu ID: ${id}`);
     this.showNotification('Chuyển hướng đến trang sản phẩm', 'info');
+    // Ví dụ: this.router.navigate(['/products'], { queryParams: { brandId: id } });
+  }
+
+  // Tìm kiếm thương hiệu
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.brands.filter = filterValue.trim().toLowerCase();
+
+    if (this.brands.paginator) {
+      this.brands.paginator.firstPage();
+    }
   }
 
   // Hiển thị thông báo

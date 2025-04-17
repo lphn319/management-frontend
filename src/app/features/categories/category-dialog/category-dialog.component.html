@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>
+    {{ isEditMode ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới' }}
+</h2>
+
+<form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+    <div mat-dialog-content>
+        <div class="form-grid">
+            <!-- Tên danh mục -->
+            <mat-form-field appearance="outline">
+                <mat-label>Tên danh mục</mat-label>
+                <input matInput formControlName="name" placeholder="Nhập tên danh mục">
+                <mat-error *ngIf="categoryForm.get('name')?.hasError('required')">
+                    Tên danh mục là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Danh mục cha -->
+            <mat-form-field appearance="outline">
+                <mat-label>Danh mục cha</mat-label>
+                <mat-select formControlName="parentId">
+                    <mat-option [value]="null">Không có</mat-option>
+                    <mat-option *ngFor="let category of data.categories" [value]="category.id">
+                        {{ category.name }}
+                    </mat-option>
+                </mat-select>
+                <mat-hint>Chọn danh mục cha nếu đây là danh mục con</mat-hint>
+            </mat-form-field>
+
+            <!-- Trạng thái -->
+            <mat-form-field appearance="outline">
+                <mat-label>Trạng thái</mat-label>
+                <mat-select formControlName="status">
+                    <mat-option value="active">Đang hoạt động</mat-option>
+                    <mat-option value="inactive">Ẩn</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Mô tả -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Mô tả</mat-label>
+                <textarea matInput formControlName="description" placeholder="Nhập mô tả danh mục" rows="3"></textarea>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">Hủy</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
+            {{ isEditMode ? 'Lưu' : 'Thêm' }}
+        </button>
+    </div>
+</form>

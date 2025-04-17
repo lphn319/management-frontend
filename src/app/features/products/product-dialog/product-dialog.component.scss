@@ -1,0 +1,288 @@
+// Biến
+$border-radius: 8px;
+$card-gap: 16px;
+$primary-color: #2196f3; // Azura primary color
+$primary-light: rgba($primary-color, 0.1);
+$accent-color: #4caf50; // Azura accent color
+$error-color: #f44336;
+$transition-time: 0.3s;
+$transition-function: cubic-bezier(0.4, 0, 0.2, 1);
+$shadow-light: 0 2px 5px rgba(33, 150, 243, 0.08); // Azura shadow
+$shadow-medium: 0 4px 8px rgba(33, 150, 243, 0.12); // Azura shadow
+
+@mixin transition($property) {
+    transition: $property $transition-time $transition-function;
+    will-change: $property;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    animation: fade-in 0.4s $transition-function;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h2.mat-dialog-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: $primary-color; // Azura primary color
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba($primary-color, 0.2);
+    letter-spacing: 0.3px;
+}
+
+mat-form-field {
+    width: 100%;
+
+    &.mat-form-field-appearance-outline {
+        .mat-form-field-outline {
+            @include transition(color);
+        }
+
+        &.mat-focused {
+            .mat-form-field-outline {
+                color: $primary-color;
+            }
+        }
+
+        // Thêm hiệu ứng hover
+        &:hover:not(.mat-focused) {
+            .mat-form-field-outline {
+                color: rgba($primary-color, 0.5);
+            }
+        }
+    }
+}
+
+// Customize input styles
+:host ::ng-deep {
+    .mat-form-field-wrapper {
+        padding-bottom: 1.2em;
+    }
+
+    .mat-form-field-infix {
+        padding: 0.7em 0;
+        width: auto;
+    }
+
+    .mat-select-arrow {
+        color: rgba(0, 0, 0, 0.54);
+        @include transition(transform);
+    }
+
+    // Hiệu ứng khi mở dropdown
+    .mat-select-arrow-active {
+        transform: rotate(180deg);
+    }
+
+    .mat-form-field-label {
+        color: rgba(0, 0, 0, 0.6);
+        @include transition(color);
+
+        &.mat-focused {
+            color: $primary-color;
+        }
+    }
+
+    .mat-form-field-required-marker {
+        color: $error-color;
+    }
+
+    // Tối ưu hiển thị placeholder
+    .mat-form-field-label-wrapper {
+        overflow: visible;
+    }
+
+    // Tăng độ tương phản cho input
+    .mat-input-element {
+        color: rgba(0, 0, 0, 0.87);
+        caret-color: $primary-color;
+    }
+
+    // Hiệu ứng khi disabled
+    .mat-input-element:disabled {
+        color: rgba(0, 0, 0, 0.38);
+    }
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+    @include transition(border-color);
+    line-height: 1.5;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+
+    &::-webkit-scrollbar {
+        display: none;
+        /* Chrome, Safari, Opera */
+    }
+
+    &:focus {
+        border-color: $primary-color;
+        outline: none;
+    }
+}
+
+mat-dialog-content {
+    min-width: 600px;
+    max-width: 800px;
+    max-height: 75vh;
+    overflow-x: hidden;
+    padding: 8px 24px 16px;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+
+    &::-webkit-scrollbar {
+        display: none;
+        /* Chrome, Safari, Opera */
+    }
+
+    @media (max-width: 768px) {
+        min-width: auto;
+        max-width: 95vw;
+        padding: 8px 16px;
+    }
+}
+
+mat-dialog-actions {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-bottom: 0;
+    border-top: 1px solid rgba(33, 150, 243, 0.08); // Azura light border
+
+    button {
+        min-width: 100px;
+        @include transition(all);
+
+        &.mat-raised-button {
+            box-shadow: $shadow-light;
+
+            &:not([disabled]):hover {
+                transform: translateY(-2px);
+                box-shadow: $shadow-medium;
+            }
+
+            &:not([disabled]):active {
+                transform: translateY(0);
+            }
+        }
+
+        &.mat-button {
+            &:not([disabled]):hover {
+                background: rgba($primary-color, 0.05);
+            }
+        }
+
+        &:first-child {
+            margin-right: auto;
+        }
+
+        &[disabled] {
+            opacity: 0.6;
+        }
+    }
+}
+
+// Customize select dropdown
+:host ::ng-deep {
+    .mat-select-panel {
+        border-radius: $border-radius;
+        margin-top: 8px;
+        box-shadow: $shadow-medium;
+    }
+
+    .mat-option {
+        @include transition(background-color);
+        padding: 10px 16px;
+        line-height: 1.4;
+
+        &:hover:not(.mat-option-disabled) {
+            background-color: rgba($primary-color, 0.08);
+        }
+
+        &.mat-selected:not(.mat-option-multiple):not(.mat-option-disabled) {
+            background-color: rgba($primary-color, 0.15);
+        }
+
+        &.mat-active {
+            background-color: rgba($primary-color, 0.12);
+        }
+    }
+
+    .mat-option-text {
+        font-size: 14px;
+    }
+
+    // Chip cho multiple select
+    .mat-chip-list {
+        .mat-chip {
+            @include transition(all);
+            background-color: rgba($primary-color, 0.12);
+            color: $primary-color; // Azura color for chips
+
+            &:hover {
+                background-color: rgba($primary-color, 0.18);
+            }
+        }
+    }
+}
+
+// Error messages
+:host ::ng-deep .mat-error {
+    font-size: 12px;
+    padding-top: 4px;
+    letter-spacing: 0.2px;
+    animation: error-in 0.3s $transition-function;
+
+    &::before {
+        content: '• ';
+        color: $error-color;
+    }
+}
+
+@keyframes error-in {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Thêm độ tương phản cho số
+input[type="number"] {
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,253 @@
+<div class="order-container">
+    <div class="order-header">
+        <h1>Quản lý đơn hàng</h1>
+        <div class="actions">
+            <button mat-raised-button color="primary" (click)="openOrderDialog()">
+                <mat-icon>add</mat-icon>
+                Tạo đơn hàng mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Bộ lọc và tìm kiếm -->
+    <mat-card class="filter-card">
+        <mat-card-content>
+            <div class="filter-container">
+                <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Tìm kiếm đơn hàng</mat-label>
+                    <input matInput placeholder="Nhập mã đơn hoặc tên khách hàng">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <div class="filter-actions">
+                    <button mat-stroked-button [matMenuTriggerFor]="statusMenu">
+                        <mat-icon>assignment</mat-icon>
+                        Trạng thái
+                    </button>
+                    <mat-menu #statusMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Chờ xác nhận</button>
+                        <button mat-menu-item>Đã xác nhận</button>
+                        <button mat-menu-item>Đang vận chuyển</button>
+                        <button mat-menu-item>Đã giao hàng</button>
+                        <button mat-menu-item>Đã hủy</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="paymentMenu">
+                        <mat-icon>payment</mat-icon>
+                        Thanh toán
+                    </button>
+                    <mat-menu #paymentMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Đã thanh toán</button>
+                        <button mat-menu-item>Chưa thanh toán</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="dateMenu">
+                        <mat-icon>date_range</mat-icon>
+                        Thời gian
+                    </button>
+                    <mat-menu #dateMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Hôm nay</button>
+                        <button mat-menu-item>Tuần này</button>
+                        <button mat-menu-item>Tháng này</button>
+                        <button mat-menu-item>Tùy chỉnh...</button>
+                    </mat-menu>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Thống kê nhanh -->
+    <div class="stats-container">
+        <mat-card class="stats-card">
+            <div class="stats-icon pending">
+                <mat-icon>hourglass_top</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Chờ xác nhận</div>
+                <div class="stats-value">{{ orderStats.pending }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon confirmed">
+                <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Đã xác nhận</div>
+                <div class="stats-value">{{ orderStats.confirmed }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon shipping">
+                <mat-icon>local_shipping</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Đang vận chuyển</div>
+                <div class="stats-value">{{ orderStats.shipping }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon delivered">
+                <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Đã giao hàng</div>
+                <div class="stats-value">{{ orderStats.delivered }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon cancelled">
+                <mat-icon>cancel</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Đã hủy</div>
+                <div class="stats-value">{{ orderStats.cancelled }}</div>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Bảng đơn hàng -->
+    <mat-card class="order-card">
+        <mat-card-header>
+            <mat-card-title>Danh sách đơn hàng</mat-card-title>
+            <button mat-button color="primary">
+                <mat-icon>file_download</mat-icon>
+                Xuất dữ liệu
+            </button>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="orders" class="order-table">
+                <!-- Cột mã đơn hàng -->
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef>Mã đơn</th>
+                    <td mat-cell *matCellDef="let order">
+                        <div class="order-id">#{{ order.id }}</div>
+                        <div class="order-date">{{ order.createdAt | date:'dd/MM/yyyy' }}</div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột thông tin khách hàng -->
+                <ng-container matColumnDef="customer">
+                    <th mat-header-cell *matHeaderCellDef>Khách hàng</th>
+                    <td mat-cell *matCellDef="let order">
+                        <div class="customer-name">{{ order.customer.fullName }}</div>
+                        <div class="customer-phone">{{ order.customer.phone }}</div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột sản phẩm -->
+                <ng-container matColumnDef="products">
+                    <th mat-header-cell *matHeaderCellDef>Sản phẩm</th>
+                    <td mat-cell *matCellDef="let order">
+                        <div class="product-count">{{ order.items.length }} sản phẩm</div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột tổng tiền -->
+                <ng-container matColumnDef="totalAmount">
+                    <th mat-header-cell *matHeaderCellDef>Tổng tiền</th>
+                    <td mat-cell *matCellDef="let order">{{ formatCurrency(order.totalAmount) }}</td>
+                </ng-container>
+
+                <!-- Cột phương thức thanh toán -->
+                <ng-container matColumnDef="paymentMethod">
+                    <th mat-header-cell *matHeaderCellDef>Thanh toán</th>
+                    <td mat-cell *matCellDef="let order">
+                        <div class="payment-method">
+                            <mat-icon *ngIf="order.paymentMethod === 'CASH'">money</mat-icon>
+                            <mat-icon *ngIf="order.paymentMethod === 'CREDIT_CARD'">credit_card</mat-icon>
+                            <mat-icon *ngIf="order.paymentMethod === 'BANK_TRANSFER'">account_balance</mat-icon>
+                            <mat-icon *ngIf="order.paymentMethod === 'MOMO'">smartphone</mat-icon>
+                            {{ getPaymentMethodName(order.paymentMethod) }}
+                        </div>
+                        <div class="payment-status"
+                            [ngClass]="{'paid': order.paymentStatus === 'PAID', 'unpaid': order.paymentStatus === 'UNPAID'}">
+                            {{ order.paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán' }}
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột trạng thái -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                    <td mat-cell *matCellDef="let order">
+                        <span class="status-badge" [ngClass]="{
+                            'pending': order.status === 'PENDING',
+                            'confirmed': order.status === 'CONFIRMED',
+                            'shipping': order.status === 'SHIPPING',
+                            'delivered': order.status === 'DELIVERED',
+                            'cancelled': order.status === 'CANCELLED'
+                        }">
+                            <mat-icon class="status-icon">
+                                {{
+                                order.status === 'PENDING' ? 'hourglass_top' :
+                                order.status === 'CONFIRMED' ? 'check_circle' :
+                                order.status === 'SHIPPING' ? 'local_shipping' :
+                                order.status === 'DELIVERED' ? 'inventory_2' : 'cancel'
+                                }}
+                            </mat-icon>
+                            {{ getStatusName(order.status) }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Cột thao tác -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Thao tác</th>
+                    <td mat-cell *matCellDef="let order">
+                        <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #actionMenu="matMenu">
+                            <button mat-menu-item (click)="viewOrderDetail(order.id)">
+                                <mat-icon>visibility</mat-icon>
+                                <span>Xem chi tiết</span>
+                            </button>
+                            <button mat-menu-item *ngIf="order.status === 'PENDING'"
+                                (click)="updateStatus(order.id, 'CONFIRMED')">
+                                <mat-icon color="primary">check_circle</mat-icon>
+                                <span>Xác nhận đơn</span>
+                            </button>
+                            <button mat-menu-item *ngIf="order.status === 'CONFIRMED'"
+                                (click)="updateStatus(order.id, 'SHIPPING')">
+                                <mat-icon color="primary">local_shipping</mat-icon>
+                                <span>Giao hàng</span>
+                            </button>
+                            <button mat-menu-item *ngIf="order.status === 'SHIPPING'"
+                                (click)="updateStatus(order.id, 'DELIVERED')">
+                                <mat-icon color="accent">inventory_2</mat-icon>
+                                <span>Đã giao hàng</span>
+                            </button>
+                            <button mat-menu-item *ngIf="['PENDING', 'CONFIRMED'].includes(order.status)"
+                                (click)="updateStatus(order.id, 'CANCELLED')">
+                                <mat-icon color="warn">cancel</mat-icon>
+                                <span>Hủy đơn hàng</span>
+                            </button>
+                            <button mat-menu-item *ngIf="order.paymentStatus === 'UNPAID'"
+                                (click)="updatePaymentStatus(order.id, 'PAID')">
+                                <mat-icon color="accent">payments</mat-icon>
+                                <span>Đánh dấu đã thanh toán</span>
+                            </button>
+                            <button mat-menu-item (click)="printOrder(order.id)">
+                                <mat-icon>print</mat-icon>
+                                <span>In đơn hàng</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+
+            <!-- Phân trang -->
+            <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+        </mat-card-content>
+    </mat-card>
+</div>

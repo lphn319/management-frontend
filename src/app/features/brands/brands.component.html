@@ -15,7 +15,7 @@
             <div class="filter-container">
                 <mat-form-field appearance="outline" class="search-field">
                     <mat-label>Tìm kiếm thương hiệu</mat-label>
-                    <input matInput placeholder="Nhập tên thương hiệu">
+                    <input matInput placeholder="Nhập tên thương hiệu" (keyup)="applyFilter($event)">
                     <mat-icon matSuffix>search</mat-icon>
                 </mat-form-field>
 
@@ -72,13 +72,18 @@
                 </button>
             </mat-card-header>
             <mat-card-content>
+                <!-- Hiển thị loading -->
+                <div class="loading-shade" *ngIf="isLoading">
+                    <mat-spinner diameter="40"></mat-spinner>
+                </div>
+
                 <table mat-table [dataSource]="brands" class="brand-table">
                     <!-- Cột logo -->
                     <ng-container matColumnDef="logo">
                         <th mat-header-cell *matHeaderCellDef>Logo</th>
                         <td mat-cell *matCellDef="let brand">
                             <div class="brand-logo">
-                                <img [src]="brand.logoUrl" [alt]="brand.name"
+                                <img [src]="brand.logoUrl || 'assets/images/placeholder.jpg'" [alt]="brand.name"
                                     onerror="this.src='assets/images/placeholder.jpg'">
                             </div>
                         </td>
@@ -89,14 +94,14 @@
                         <th mat-header-cell *matHeaderCellDef>Tên thương hiệu</th>
                         <td mat-cell *matCellDef="let brand">
                             <div class="brand-name">{{ brand.name }}</div>
-                            <div class="brand-description">{{ brand.description }}</div>
+                            <div class="brand-description">{{ brand.description || 'Không có mô tả' }}</div>
                         </td>
                     </ng-container>
 
                     <!-- Cột xuất xứ -->
                     <ng-container matColumnDef="origin">
                         <th mat-header-cell *matHeaderCellDef>Xuất xứ</th>
-                        <td mat-cell *matCellDef="let brand">{{ brand.origin }}</td>
+                        <td mat-cell *matCellDef="let brand">{{ brand.origin || 'Không xác định' }}</td>
                     </ng-container>
 
                     <!-- Cột website -->
@@ -114,7 +119,7 @@
                     <!-- Cột số lượng sản phẩm -->
                     <ng-container matColumnDef="productCount">
                         <th mat-header-cell *matHeaderCellDef>Số sản phẩm</th>
-                        <td mat-cell *matCellDef="let brand">{{ brand.productCount }}</td>
+                        <td mat-cell *matCellDef="let brand">{{ brand.productCount || 0 }}</td>
                     </ng-container>
 
                     <!-- Cột trạng thái -->
@@ -122,10 +127,10 @@
                         <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
                         <td mat-cell *matCellDef="let brand">
                             <span class="status-badge" [ngClass]="{
-                                'active': brand.status === 'active',
-                                'inactive': brand.status === 'inactive'
+                                'active': brand.status === 'ACTIVE',
+                                'inactive': brand.status === 'INACTIVE'
                             }">
-                                {{ brand.status === 'active' ? 'Đang hoạt động' : 'Ẩn' }}
+                                {{ brand.status === 'ACTIVE' ? 'Đang hoạt động' : 'Ẩn' }}
                             </span>
                         </td>
                     </ng-container>
@@ -143,10 +148,10 @@
                                     <span>Chỉnh sửa</span>
                                 </button>
                                 <button mat-menu-item
-                                    (click)="updateStatus(brand.id, brand.status === 'active' ? 'inactive' : 'active')">
-                                    <mat-icon>{{ brand.status === 'active' ? 'visibility_off' : 'visibility'
+                                    (click)="updateStatus(brand.id, brand.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')">
+                                    <mat-icon>{{ brand.status === 'ACTIVE' ? 'visibility_off' : 'visibility'
                                         }}</mat-icon>
-                                    <span>{{ brand.status === 'active' ? 'Ẩn thương hiệu' : 'Hiện thương hiệu' }}</span>
+                                    <span>{{ brand.status === 'ACTIVE' ? 'Ẩn thương hiệu' : 'Hiện thương hiệu' }}</span>
                                 </button>
                                 <button mat-menu-item (click)="deleteBrand(brand.id)">
                                     <mat-icon color="warn">delete</mat-icon>
@@ -162,6 +167,11 @@
 
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+                    <!-- Khi không có dữ liệu -->
+                    <tr class="mat-row" *matNoDataRow>
+                        <td class="mat-cell" colspan="7">Không tìm thấy dữ liệu thương hiệu</td>
+                    </tr>
                 </table>
 
                 <!-- Phân trang -->
@@ -176,18 +186,23 @@
                     <mat-card-title>Thương hiệu nổi bật</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                    <div class="featured-brands-list">
+                    <div class="featured-brands-list" *ngIf="featuredBrands.length > 0; else noFeaturedBrands">
                         <div class="featured-brand-item" *ngFor="let brand of featuredBrands">
                             <div class="featured-brand-logo">
-                                <img [src]="brand.logoUrl" [alt]="brand.name"
+                                <img [src]="brand.logoUrl || 'assets/images/placeholder.jpg'" [alt]="brand.name"
                                     onerror="this.src='assets/images/placeholder.jpg'">
                             </div>
                             <div class="featured-brand-info">
                                 <div class="featured-brand-name">{{ brand.name }}</div>
-                                <div class="featured-brand-count">{{ brand.productCount }} sản phẩm</div>
+                                <div class="featured-brand-count">{{ brand.productCount || 0 }} sản phẩm</div>
                             </div>
                         </div>
                     </div>
+                    <ng-template #noFeaturedBrands>
+                        <div class="no-featured-brands">
+                            Không có thương hiệu nổi bật
+                        </div>
+                    </ng-template>
                 </mat-card-content>
             </mat-card>
 
@@ -198,15 +213,15 @@
                 <mat-card-content>
                     <div class="brand-stats">
                         <div class="brand-stat-item">
-                            <div class="brand-stat-value">{{ totalBrands }}</div>
+                            <div class="brand-stat-value">{{ totalBrands || 0 }}</div>
                             <div class="brand-stat-label">Tổng số thương hiệu</div>
                         </div>
                         <div class="brand-stat-item">
-                            <div class="brand-stat-value">{{ activeBrands }}</div>
+                            <div class="brand-stat-value">{{ activeBrands || 0 }}</div>
                             <div class="brand-stat-label">Đang hoạt động</div>
                         </div>
                         <div class="brand-stat-item">
-                            <div class="brand-stat-value">{{ inactiveBrands }}</div>
+                            <div class="brand-stat-value">{{ inactiveBrands || 0 }}</div>
                             <div class="brand-stat-label">Đang ẩn</div>
                         </div>
                     </div>

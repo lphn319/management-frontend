@@ -1,0 +1,96 @@
+// Biến
+$primary-color: #3f51b5;
+$text-primary: #333;
+$text-secondary: #666;
+$primary-alpha-5: rgba($primary-color, 0.05);
+$primary-alpha-10: rgba($primary-color, 0.1);
+$nav-item-height: 48px;
+$spacing-standard: 16px;
+$spacing-small: 8px;
+$spacing-tiny: 4px;
+$active-indicator-width: 4px;
+
+// Mixins
+@mixin nav-item-base {
+    height: $nav-item-height;
+
+    mat-icon {
+        margin-right: $spacing-standard;
+        color: $text-secondary;
+    }
+
+    .nav-label {
+        color: $text-primary;
+    }
+}
+
+// Sidebar
+.sidebar-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+// Header
+.sidebar-header {
+    padding: $spacing-standard;
+
+    .logo {
+        display: flex;
+        align-items: center;
+
+        h2 {
+            margin: 0;
+            color: $primary-color;
+            font-size: 20px;
+            font-weight: 500;
+        }
+    }
+}
+
+// Navigation
+.nav-items {
+    flex: 1;
+
+    mat-nav-list {
+        padding-top: $spacing-small;
+
+        a {
+            @include nav-item-base;
+            border-radius: 0;
+            margin: $spacing-tiny 0;
+
+            &:hover {
+                background-color: $primary-alpha-5;
+            }
+
+            &.active-link {
+                background-color: $primary-alpha-10;
+
+                mat-icon,
+                .nav-label {
+                    color: $primary-color;
+                }
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: $active-indicator-width;
+                    height: 100%;
+                    background-color: $primary-color;
+                }
+            }
+        }
+    }
+}
+
+// Footer
+.sidebar-footer {
+    a {
+        @include nav-item-base;
+    }
+}

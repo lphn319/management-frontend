@@ -2,9 +2,9 @@
     {{ isEditMode ? 'Chỉnh sửa thương hiệu' : 'Thêm thương hiệu mới' }}
 </h2>
 
-<form [formGroup]="brandForm" (ngSubmit)="onSubmit()">
+<form [formGroup]="brandForm">
     <div mat-dialog-content>
-        <div class="form-grid">
+        <div class=" form-grid">
             <!-- Tên thương hiệu -->
             <mat-form-field appearance="outline">
                 <mat-label>Tên thương hiệu</mat-label>
@@ -66,7 +66,8 @@
 
     <div mat-dialog-actions align="end">
         <button mat-button type="button" (click)="onCancel()">Hủy</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="brandForm.invalid">
+        <button mat-raised-button color="primary" type="button" [disabled]="brandForm.invalid"
+            (click)="isEditMode ? onSave() : onAdd()">
             {{ isEditMode ? 'Lưu' : 'Thêm' }}
         </button>
     </div>

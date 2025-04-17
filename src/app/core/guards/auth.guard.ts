@@ -3,7 +3,8 @@ import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { UserRole } from '../../features/auth/models/user.model';
 
-// Basic auth guard - checks if user is authenticated
+// Guard xác thực - kiểm tra xem người dùng đã đăng nhập hay chưa
+// Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
 export const authGuard: CanActivateFn = () => {
     const authService = inject(AuthService);
     const router = inject(Router);
@@ -16,28 +17,28 @@ export const authGuard: CanActivateFn = () => {
     return true;
 };
 
-// Role-based guard - checks if user has specified role(s)
+// Guard dựa trên vai trò - kiểm tra xem người dùng có vai trò được chỉ định hay không
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     const authService = inject(AuthService);
     const router = inject(Router);
 
-    // First check if user is logged in
+    // Trước tiên, kiểm tra xem người dùng đã đăng nhập chưa
     if (!authService.isLoggedIn()) {
         router.navigate(['/login']);
         return false;
     }
 
-    // Get required roles from route data
+    // Lấy các vai trò bắt buộc từ dữ liệu route
     const requiredRoles = route.data['roles'] as UserRole[] | undefined;
 
-    // If no roles specified, just check authentication
+    // Nếu không có vai trò nào được chỉ định, chỉ cần kiểm tra xác thực
     if (!requiredRoles || requiredRoles.length === 0) {
         return true;
     }
 
-    // Check if user has any of the required roles
+    // Kiểm tra xem người dùng có bất kỳ vai trò bắt buộc nào không
     if (!authService.hasAnyRole(requiredRoles)) {
-        // Redirect based on their actual role
+        // Chuyển hướng dựa trên vai trò thực tế của họ
         const userRole = authService.getUserRole();
         if (userRole === 'ADMIN') {
             router.navigate(['/portal']);
@@ -50,7 +51,7 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     return true;
 };
 
-// Guard specifically for admin routes
+// Guard route admin
 export const adminGuard: CanActivateFn = () => {
     const authService = inject(AuthService);
     const router = inject(Router);
@@ -61,7 +62,7 @@ export const adminGuard: CanActivateFn = () => {
     }
 
     if (!authService.hasRole('ADMIN')) {
-        // Redirect to appropriate area based on role
+        // Chuyển hướng đến khu vực thích hợp dựa trên vai trò
         router.navigate(['/']);
         return false;
     }
@@ -69,7 +70,7 @@ export const adminGuard: CanActivateFn = () => {
     return true;
 };
 
-// Guard specifically for customer routes
+// Guard route khách hàng
 export const customerGuard: CanActivateFn = () => {
     const authService = inject(AuthService);
     const router = inject(Router);
@@ -80,7 +81,7 @@ export const customerGuard: CanActivateFn = () => {
     }
 
     if (!authService.hasRole('CUSTOMER')) {
-        // Redirect to appropriate area based on role
+        // Chuyển hướng đến khu vực thích hợp dựa trên vai trò
         const userRole = authService.getUserRole();
         if (userRole === 'ADMIN') {
             router.navigate(['/portal']);
@@ -93,13 +94,13 @@ export const customerGuard: CanActivateFn = () => {
     return true;
 };
 
-// Prevent authenticated users from accessing login/register
+// Ngăn người dùng đã xác thực truy cập trang đăng nhập/đăng ký
 export const noAuthGuard: CanActivateFn = () => {
     const authService = inject(AuthService);
     const router = inject(Router);
 
     if (authService.isLoggedIn()) {
-        // Redirect based on user role
+        // Chuyển hướng dựa trên vai trò người dùng
         const userRole = authService.getUserRole();
         if (userRole === 'ADMIN') {
             router.navigate(['/portal']);

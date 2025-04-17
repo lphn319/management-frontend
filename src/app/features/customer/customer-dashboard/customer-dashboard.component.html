@@ -1,0 +1,18 @@
+<div class="customer-dashboard">
+    <h1>Customer Dashboard</h1>
+    <p>Welcome, {{ userName }}</p>
+
+    <mat-card class="dashboard-card">
+        <mat-card-header>
+            <mat-card-title>Customer Area</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <p>This area is only accessible to customers.</p>
+        </mat-card-content>
+        <mat-card-actions>
+            <button mat-raised-button color="primary" (click)="logout()">Logout</button>
+        </mat-card-actions>
+    </mat-card>
+
+    <router-outlet></router-outlet>
+</div>

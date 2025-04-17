@@ -127,8 +127,8 @@
                         <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
                         <td mat-cell *matCellDef="let brand">
                             <span class="status-badge" [ngClass]="{
-                                'active': brand.status === 'ACTIVE',
-                                'inactive': brand.status === 'INACTIVE'
+                                'ACTIVE': brand.status === 'ACTIVE',
+                                'INACTIVE': brand.status === 'INACTIVE'
                             }">
                                 {{ brand.status === 'ACTIVE' ? 'Đang hoạt động' : 'Ẩn' }}
                             </span>

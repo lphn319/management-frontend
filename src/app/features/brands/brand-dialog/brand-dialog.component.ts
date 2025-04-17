@@ -56,19 +56,53 @@ export class BrandDialogComponent implements OnInit {
     }
   }
 
-  onSubmit(): void {
+  validateForm(): boolean {
     if (this.brandForm.valid) {
+      return true;
+    } else {
+      // Mark all fields as touched to trigger validation errors
+      Object.keys(this.brandForm.controls).forEach(key => {
+        this.brandForm.get(key)?.markAsTouched();
+      });
+      return false;
+    }
+  }
+
+  onSave(): void {
+    if (this.validateForm()) {
       const formData = this.brandForm.value;
 
       const result = {
-        ...(this.data.brand || { id: Math.floor(Math.random() * 1000) + 11 }),
+        ...this.data.brand,
         name: formData.name,
         description: formData.description,
         logoUrl: formData.logoUrl || 'assets/images/placeholder.jpg',
         origin: formData.origin,
         website: formData.website,
         status: formData.status,
-        productCount: this.isEditMode ? this.data.brand?.productCount : 0
+        // Keep the existing product count
+        productCount: this.data.brand?.productCount || 0
+      };
+
+      this.dialogRef.close(result);
+    }
+  }
+
+  onAdd(): void {
+    if (this.validateForm()) {
+      const formData = this.brandForm.value;
+
+      const result = {
+        // For new brands, we don't include an ID (or use a temporary one if needed)
+        // id: Math.floor(Math.random() * 1000) + 11, // Remove this if backend assigns IDs
+        name: formData.name,
+        description: formData.description,
+        logoUrl: formData.logoUrl || 'assets/images/placeholder.jpg',
+        origin: formData.origin,
+        website: formData.website,
+        status: formData.status,
+        // New brands always start with 0 products
+        productCount: 0
       };
 
       this.dialogRef.close(result);

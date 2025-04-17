@@ -1,0 +1,30 @@
+<div class="layout-container">
+    <mat-toolbar color="primary" class="main-toolbar">
+        <button mat-icon-button (click)="toggleSidenav()">
+            <mat-icon>menu</mat-icon>
+        </button>
+        <span class="app-title">STORE MANAGEMENT</span>
+        <span class="toolbar-spacer"></span>
+        <button mat-icon-button aria-label="Thông báo">
+            <mat-icon>notifications</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="Tài khoản">
+            <mat-icon>account_circle</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="Cài đặt">
+            <mat-icon>settings</mat-icon>
+        </button>
+    </mat-toolbar>
+
+    <div class="content-container">
+        <!-- Sidebar với sự kiện ready -->
+        <div #sidebarContainer class="sidebar" [class.ready]="sidebarReady" [class.open]="isSidenavOpen">
+            <app-sidebar (ready)="onSidebarReady()"></app-sidebar>
+        </div>
+
+        <!-- Main content shifts right when sidebar is open -->
+        <div #mainContent class="main-content" [class.sidebar-open]="isSidenavOpen">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+</div>

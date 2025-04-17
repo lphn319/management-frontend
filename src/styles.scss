@@ -1,1 +1,68 @@
 /* You can add global styles to this file, and also import other style files */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+// Snackbar styles với theme Azura
+.azura-snackbar {
+    &.success-snackbar {
+        background-color: #4caf50; // Accent color
+        color: white;
+    }
+
+    &.error-snackbar {
+        background-color: #f44336; // Warn color
+        color: white;
+    }
+
+    &.info-snackbar {
+        background-color: #2196f3; // Primary color
+        color: white;
+    }
+
+    .mat-simple-snackbar-action {
+        color: white;
+    }
+}
+
+// Hiệu ứng ripple cho các button trong theme Azura
+.mat-mdc-raised-button.mat-primary .mat-ripple-element {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+// Custom scroll cho toàn bộ ứng dụng
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2196f3;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1976d2;
+}
+
+/* Ẩn scrollbar cho các container cụ thể */
+.mat-dialog-content,
+.mat-card-content,
+.mat-table-container,
+textarea {
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+
+    /* IE and Edge */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}

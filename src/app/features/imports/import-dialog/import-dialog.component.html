@@ -1,0 +1,140 @@
+<h2 mat-dialog-title>
+    {{ isEditMode ? 'Chỉnh sửa đơn nhập hàng' : viewOnly ? 'Chi tiết đơn nhập hàng' : 'Tạo đơn nhập hàng mới' }}
+</h2>
+
+<form [formGroup]="importForm" (ngSubmit)="onSubmit()">
+    <div mat-dialog-content>
+        <div class="form-container">
+            <div class="form-header">
+                <div class="form-group">
+                    <!-- Nhà cung cấp -->
+                    <mat-form-field appearance="outline">
+                        <mat-label>Nhà cung cấp</mat-label>
+                        <mat-select formControlName="supplier" [disabled]="viewOnly">
+                            <mat-option *ngFor="let supplier of data.suppliers" [value]="supplier.id">
+                                {{ supplier.name }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="importForm.get('supplier')?.hasError('required')">
+                            Nhà cung cấp là bắt buộc
+                        </mat-error>
+                    </mat-form-field>
+
+                    <!-- Nhân viên -->
+                    <mat-form-field appearance="outline">
+                        <mat-label>Nhân viên phụ trách</mat-label>
+                        <mat-select formControlName="employee" [disabled]="viewOnly">
+                            <mat-option *ngFor="let employee of data.employees" [value]="employee.id">
+                                {{ employee.name }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="importForm.get('employee')?.hasError('required')">
+                            Nhân viên phụ trách là bắt buộc
+                        </mat-error>
+                    </mat-form-field>
+
+                    <!-- Trạng thái -->
+                    <mat-form-field appearance="outline" *ngIf="isEditMode || viewOnly">
+                        <mat-label>Trạng thái</mat-label>
+                        <mat-select formControlName="status" [disabled]="viewOnly">
+                            <mat-option value="processing">Đang xử lý</mat-option>
+                            <mat-option value="completed">Hoàn thành</mat-option>
+                            <mat-option value="cancelled">Đã hủy</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <div class="form-divider">
+                <span>Danh sách sản phẩm</span>
+            </div>
+
+            <!-- Danh sách sản phẩm -->
+            <div class="products-list" formArrayName="products">
+                <div class="products-header">
+                    <div class="product-col">Sản phẩm</div>
+                    <div class="quantity-col">Số lượng</div>
+                    <div class="price-col">Đơn giá</div>
+                    <div class="total-col">Thành tiền</div>
+                    <div class="action-col" *ngIf="!viewOnly"></div>
+                </div>
+
+                <div class="product-item" *ngFor="let product of productsFormArray.controls; let i = index"
+                    [formGroupName]="i">
+                    <div class="product-col">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Sản phẩm</mat-label>
+                            <mat-select formControlName="product" [disabled]="viewOnly"
+                                (selectionChange)="onProductChange(i)">
+                                <mat-option *ngFor="let product of data.products" [value]="product.id">
+                                    {{ product.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="quantity-col">
+                        <mat-form-field appearance="outline">
+                            <!-- <mat-label>Số lượng</mat-label> -->
+                            <input matInput type="number" formControlName="quantity" min="1" [disabled]="viewOnly"
+                                (change)="updateProductTotal(i)">
+                        </mat-form-field>
+                    </div>
+                    <div class="price-col">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Đơn giá</mat-label>
+                            <input matInput type="number" formControlName="price" [disabled]="viewOnly"
+                                (change)="updateProductTotal(i)">
+                            <span matSuffix>VNĐ</span>
+                        </mat-form-field>
+                    </div>
+                    <div class="total-col">
+                        <div class="product-total">{{ calculateProductTotal(product.value) | currency:'VND':'' }}đ</div>
+                    </div>
+                    <div class="action-col" *ngIf="!viewOnly">
+                        <button mat-icon-button type="button" (click)="removeProduct(i)"
+                            [disabled]="productsFormArray.length <= 1">
+                            <mat-icon color="warn">delete</mat-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="add-product" *ngIf="!viewOnly">
+                    <button mat-stroked-button type="button" color="primary" (click)="addProduct()">
+                        <mat-icon>add</mat-icon>
+                        Thêm sản phẩm
+                    </button>
+                </div>
+            </div>
+
+            <div class="summary">
+                <div class="summary-item">
+                    <span class="summary-label">Tổng số lượng:</span>
+                    <span class="summary-value">{{ calculateTotalQuantity() }} sản phẩm</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Tổng tiền:</span>
+                    <span class="summary-value total-amount">{{ calculateTotalAmount() | currency:'VND':'' }}đ</span>
+                </div>
+            </div>
+
+            <!-- Ghi chú -->
+            <mat-form-field appearance="outline" class="notes-field">
+                <mat-label>Ghi chú</mat-label>
+                <textarea matInput formControlName="notes" [disabled]="viewOnly" rows="3"></textarea>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">
+            {{ viewOnly ? 'Đóng' : 'Hủy' }}
+        </button>
+        <button mat-raised-button color="primary" type="submit" *ngIf="!viewOnly" [disabled]="importForm.invalid">
+            {{ isEditMode ? 'Lưu' : 'Tạo đơn' }}
+        </button>
+        <button mat-stroked-button color="primary" type="button" *ngIf="viewOnly" (click)="printImport()">
+            <mat-icon>print</mat-icon>
+            In đơn nhập hàng
+        </button>
+    </div>
+</form>

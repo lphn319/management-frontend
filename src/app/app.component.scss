@@ -1,0 +1,40 @@
+/* Global styles */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Reset các style mặc định không cần thiết */
+.mat-drawer-container {
+    background-color: transparent !important;
+}
+
+/* Đảm bảo không có scrollbar ngang */
+.mat-drawer-inner-container {
+    overflow-x: hidden !important;
+}
+
+/* Force mode hiển thị side cho sidenav */
+.mat-drawer-side {
+    border-right: none !important;
+}
+
+/* Đảm bảo transition mượt mà */
+.mat-drawer-transition .mat-drawer-content {
+    transition-duration: 0.3s !important;
+    transition-timing-function: ease !important;
+}
+
+/* Xóa hoàn toàn scrollbar ngang */
+::-webkit-scrollbar-horizontal {
+    display: none;
+}

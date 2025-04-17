@@ -1,0 +1,216 @@
+<h2 mat-dialog-title>
+    {{ isEditMode ? 'Chỉnh sửa đơn hàng' : viewOnly ? 'Chi tiết đơn hàng' : 'Tạo đơn hàng mới' }}
+</h2>
+
+<form [formGroup]="orderForm" (ngSubmit)="onSubmit()">
+    <div mat-dialog-content>
+        <div class="form-container">
+            <div class="form-section customer-section">
+                <div class="section-title">Thông tin khách hàng</div>
+
+                <div class="form-row">
+                    <!-- Chọn khách hàng có sẵn hoặc thêm mới -->
+                    <div class="form-group full-width" *ngIf="!viewOnly">
+                        <mat-radio-group formControlName="customerType" class="customer-type">
+                            <mat-radio-button value="existing">Khách hàng có sẵn</mat-radio-button>
+                            <mat-radio-button value="new">Khách hàng mới</mat-radio-button>
+                        </mat-radio-group>
+                    </div>
+
+                    <!-- Chọn khách hàng có sẵn -->
+                    <div class="form-group full-width"
+                        *ngIf="orderForm.get('customerType')?.value === 'existing' && !viewOnly">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Chọn khách hàng</mat-label>
+                            <mat-select formControlName="existingCustomerId" (selectionChange)="onCustomerSelect()">
+                                <mat-option *ngFor="let customer of data.customers" [value]="customer.id">
+                                    {{ customer.name }} - {{ customer.phone }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <!-- Form thông tin khách hàng -->
+                    <ng-container formGroupName="customerInfo">
+                        <div class="form-group">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Họ và tên</mat-label>
+                                <input matInput formControlName="fullName" placeholder="Nhập họ tên khách hàng"
+                                    [readonly]="viewOnly">
+                                <mat-error *ngIf="customerInfo.get('fullName')?.hasError('required')">
+                                    Họ tên là bắt buộc
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-group">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Số điện thoại</mat-label>
+                                <input matInput formControlName="phone" placeholder="Nhập số điện thoại"
+                                    [readonly]="viewOnly">
+                                <mat-error *ngIf="customerInfo.get('phone')?.hasError('required')">
+                                    Số điện thoại là bắt buộc
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-group">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Email</mat-label>
+                                <input matInput formControlName="email" placeholder="Nhập email" [readonly]="viewOnly">
+                                <mat-error *ngIf="customerInfo.get('email')?.hasError('email')">
+                                    Email không hợp lệ
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Địa chỉ</mat-label>
+                                <textarea matInput formControlName="address" placeholder="Nhập địa chỉ giao hàng"
+                                    rows="2" [readonly]="viewOnly"></textarea>
+                                <mat-error *ngIf="customerInfo.get('address')?.hasError('required')">
+                                    Địa chỉ là bắt buộc
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+
+            <div class="form-section product-section">
+                <div class="section-title">Thông tin sản phẩm</div>
+
+                <!-- Danh sách sản phẩm -->
+                <div class="products-list" formArrayName="items">
+                    <div class="products-header">
+                        <div class="product-col">Sản phẩm</div>
+                        <div class="quantity-col">Số lượng</div>
+                        <div class="price-col">Đơn giá</div>
+                        <div class="total-col">Thành tiền</div>
+                        <div class="action-col" *ngIf="!viewOnly"></div>
+                    </div>
+
+                    <div class="product-item" *ngFor="let item of itemsFormArray.controls; let i = index"
+                        [formGroupName]="i">
+                        <div class="product-col">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Sản phẩm</mat-label>
+                                <mat-select formControlName="productId" [disabled]="viewOnly"
+                                    (selectionChange)="onProductChange(i)">
+                                    <mat-option *ngFor="let product of data.products" [value]="product.id">
+                                        {{ product.name }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        <div class="quantity-col">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Số lượng</mat-label>
+                                <input matInput type="number" formControlName="quantity" min="1" [readonly]="viewOnly"
+                                    (change)="updateItemTotal(i)">
+                            </mat-form-field>
+                        </div>
+                        <div class="price-col">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Đơn giá</mat-label>
+                                <input matInput type="number" formControlName="price" [readonly]="viewOnly"
+                                    (change)="updateItemTotal(i)">
+                                <span matSuffix>VNĐ</span>
+                            </mat-form-field>
+                        </div>
+                        <div class="total-col">
+                            <div class="item-total">{{ calculateItemTotal(item.value) | currency:'VND':'' }}đ</div>
+                        </div>
+                        <div class="action-col" *ngIf="!viewOnly">
+                            <button mat-icon-button type="button" (click)="removeItem(i)"
+                                [disabled]="itemsFormArray.length <= 1">
+                                <mat-icon color="warn">delete</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="add-product" *ngIf="!viewOnly">
+                        <button mat-stroked-button type="button" color="primary" (click)="addItem()">
+                            <mat-icon>add</mat-icon>
+                            Thêm sản phẩm
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section order-section">
+                <div class="section-title">Thông tin đơn hàng</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Phương thức thanh toán</mat-label>
+                            <mat-select formControlName="paymentMethod" [disabled]="viewOnly">
+                                <mat-option value="CASH">Tiền mặt</mat-option>
+                                <mat-option value="CREDIT_CARD">Thẻ tín dụng</mat-option>
+                                <mat-option value="BANK_TRANSFER">Chuyển khoản</mat-option>
+                                <mat-option value="MOMO">Ví MoMo</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="form-group">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Trạng thái thanh toán</mat-label>
+                            <mat-select formControlName="paymentStatus" [disabled]="viewOnly">
+                                <mat-option value="PAID">Đã thanh toán</mat-option>
+                                <mat-option value="UNPAID">Chưa thanh toán</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="form-group" *ngIf="isEditMode || viewOnly">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Trạng thái đơn hàng</mat-label>
+                            <mat-select formControlName="status" [disabled]="viewOnly">
+                                <mat-option value="PENDING">Chờ xác nhận</mat-option>
+                                <mat-option value="CONFIRMED">Đã xác nhận</mat-option>
+                                <mat-option value="SHIPPING">Đang vận chuyển</mat-option>
+                                <mat-option value="DELIVERED">Đã giao hàng</mat-option>
+                                <mat-option value="CANCELLED">Đã hủy</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Ghi chú</mat-label>
+                        <textarea matInput formControlName="notes" placeholder="Nhập ghi chú đơn hàng" rows="2"
+                            [readonly]="viewOnly"></textarea>
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <div class="order-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Tổng số lượng:</span>
+                    <span class="summary-value">{{ calculateTotalQuantity() }} sản phẩm</span>
+                </div>
+                <div class="summary-item total">
+                    <span class="summary-label">Tổng tiền:</span>
+                    <span class="summary-value total-amount">{{ calculateTotalAmount() | currency:'VND':'' }}đ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">
+            {{ viewOnly ? 'Đóng' : 'Hủy' }}
+        </button>
+        <button mat-raised-button color="primary" type="submit" *ngIf="!viewOnly" [disabled]="orderForm.invalid">
+            {{ isEditMode ? 'Lưu' : 'Tạo đơn' }}
+        </button>
+        <button mat-stroked-button color="primary" type="button" *ngIf="viewOnly" (click)="printOrder()">
+            <mat-icon>print</mat-icon>
+            In đơn hàng
+        </button>
+    </div>
+</form>

@@ -1,0 +1,448 @@
+// Biến và mixin
+@use "sass:color";
+
+$border-radius: 8px;
+$card-gap: 16px;
+$primary-color: #2196f3; // Azura primary color
+$success-color: #4caf50; // Azura accent color
+$error-color: #f44336;
+$warning-color: #ff9800;
+$info-color: #2196f3;
+$text-secondary: #666;
+$transition-time: 0.3s;
+$transition-function: ease;
+
+@mixin flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@mixin card-base {
+    border-radius: $border-radius;
+    margin-bottom: $card-gap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: box-shadow $transition-time $transition-function;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15); // Azura shadow
+    }
+}
+
+@mixin status-style($color) {
+    background-color: rgba($color, 0.1);
+    color: $color;
+    font-weight: 500;
+}
+
+@mixin transition($property) {
+    transition: $property $transition-time $transition-function;
+    will-change: $property;
+}
+
+// Layout
+.brand {
+    &-container {
+        padding: $card-gap;
+        animation: fade-in 0.5s ease;
+    }
+
+    &-header {
+        @include flex-between;
+        margin-bottom: 20px;
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 500;
+            color: #030303;
+        }
+
+        .actions {
+            button {
+                mat-icon {
+                    margin-right: 4px;
+                }
+            }
+        }
+    }
+}
+
+.brands-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: $card-gap;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Filter card
+.filter-card {
+    @include card-base;
+
+    .mat-mdc-card-content {
+        padding: $card-gap;
+    }
+}
+
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $card-gap;
+    align-items: center;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-field {
+        flex: 1;
+        min-width: 250px;
+
+        .mat-mdc-form-field-subscript-wrapper {
+            display: none;
+        }
+
+        input {
+            @include transition(border-color);
+
+            &:focus {
+                border-color: $primary-color;
+            }
+        }
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        @media (max-width: 768px) {
+            justify-content: space-between;
+        }
+
+        button {
+            border-color: rgba($primary-color, 0.2);
+            @include transition(background-color);
+
+            &:hover {
+                background-color: rgba($primary-color, 0.05);
+            }
+
+            mat-icon {
+                margin-right: 4px;
+                font-size: 18px;
+                height: 18px;
+                width: 18px;
+                color: $primary-color; // Azura primary color
+            }
+        }
+    }
+}
+
+// Brand list card
+.brand-list-card {
+    @include card-base;
+
+    mat-card-header {
+        @include flex-between;
+        padding: $card-gap;
+        background-color: rgba($primary-color, 0.03); // Azura light background
+
+        mat-card-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+            color: $primary-color; // Azura primary color
+        }
+    }
+
+    .mat-mdc-card-content {
+        padding: 0;
+        overflow: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+}
+
+.brand-table {
+    width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mat-mdc-header-cell {
+        font-weight: 500;
+        color: $text-secondary;
+        letter-spacing: 0.3px;
+    }
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+        padding: 12px $card-gap;
+    }
+
+    .brand-logo {
+        width: 60px;
+        height: 60px;
+        border-radius: $border-radius;
+        overflow: hidden;
+        background-color: #f5f5f5;
+        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1); // Azura shadow
+        transition: transform 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            transform: scale(1.05);
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .brand-name {
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: rgba(0, 0, 0, 0.8);
+    }
+
+    .brand-description {
+        font-size: 12px;
+        color: $text-secondary;
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .brand-website {
+        color: $primary-color;
+        text-decoration: none;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        .website-icon {
+            font-size: 14px;
+            height: 14px;
+            width: 14px;
+            margin-left: 4px;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .no-website {
+        font-style: italic;
+        color: $text-secondary;
+        font-size: 14px;
+    }
+}
+
+// Status badges
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+    transition: transform 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+
+    &.active {
+        @include status-style($success-color);
+    }
+
+    &.inactive {
+        @include status-style($text-secondary);
+    }
+}
+
+// Custom styling cho mat-paginator
+::ng-deep .mat-mdc-paginator {
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+    .mat-mdc-paginator-container {
+        padding: 12px $card-gap;
+    }
+
+    .mat-mdc-paginator-range-label {
+        margin: 0 16px;
+    }
+}
+
+// Animation khi hover row
+.mat-mdc-row {
+    transition: background-color 0.2s ease;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0;
+        height: 2px;
+        background-color: $primary-color;
+        transition: width 0.3s ease;
+    }
+
+    &:hover {
+        background-color: rgba($primary-color, 0.04);
+
+        &::after {
+            width: 100%;
+        }
+    }
+}
+
+// Featured brands card
+.featured-brands {
+    display: flex;
+    flex-direction: column;
+    gap: $card-gap;
+}
+
+.featured-brands-card,
+.brand-stats-card {
+    @include card-base;
+
+    mat-card-header {
+        padding: $card-gap;
+        background-color: rgba($primary-color, 0.03); // Azura light background
+
+        mat-card-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+            color: $primary-color; // Azura primary color
+        }
+    }
+
+    .mat-mdc-card-content {
+        padding: $card-gap;
+    }
+}
+
+.featured-brands-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.featured-brand-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: $border-radius;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgba($primary-color, 0.05);
+        transform: translateY(-2px);
+    }
+}
+
+.featured-brand-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: $border-radius;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1); // Azura shadow
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+}
+
+.featured-brand-info {
+    flex: 1;
+}
+
+.featured-brand-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.featured-brand-count {
+    font-size: 12px;
+    color: $text-secondary;
+}
+
+// Brand stats
+.brand-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.brand-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    border-radius: $border-radius;
+    background-color: rgba($primary-color, 0.05);
+    transition: transform 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.brand-stat-value {
+    font-size: 24px;
+    font-weight: 500;
+    color: $primary-color;
+}
+
+.brand-stat-label {
+    font-size: 12px;
+    color: $text-secondary;
+    text-align: center;
+}

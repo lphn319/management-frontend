@@ -1,0 +1,93 @@
+<h2 mat-dialog-title>
+    {{ isEditMode ? 'Chỉnh sửa nhà cung cấp' : 'Thêm nhà cung cấp mới' }}
+</h2>
+
+<form [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
+    <div mat-dialog-content>
+        <div class="form-grid">
+            <!-- Tên nhà cung cấp -->
+            <mat-form-field appearance="outline">
+                <mat-label>Tên nhà cung cấp</mat-label>
+                <input matInput formControlName="name" placeholder="Nhập tên nhà cung cấp">
+                <mat-error *ngIf="supplierForm.get('name')?.hasError('required')">
+                    Tên nhà cung cấp là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field appearance="outline">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" placeholder="Nhập email liên hệ" type="email">
+                <mat-error *ngIf="supplierForm.get('email')?.hasError('required')">
+                    Email là bắt buộc
+                </mat-error>
+                <mat-error *ngIf="supplierForm.get('email')?.hasError('email')">
+                    Email không hợp lệ
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Số điện thoại -->
+            <mat-form-field appearance="outline">
+                <mat-label>Số điện thoại</mat-label>
+                <input matInput formControlName="phone" placeholder="Nhập số điện thoại liên hệ">
+                <mat-error *ngIf="supplierForm.get('phone')?.hasError('required')">
+                    Số điện thoại là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Trạng thái -->
+            <mat-form-field appearance="outline">
+                <mat-label>Trạng thái</mat-label>
+                <mat-select formControlName="status">
+                    <mat-option value="active">Đang hoạt động</mat-option>
+                    <mat-option value="inactive">Tạm ngưng</mat-option>
+                </mat-select>
+                <mat-error *ngIf="supplierForm.get('status')?.hasError('required')">
+                    Trạng thái là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Địa chỉ -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Địa chỉ</mat-label>
+                <input matInput formControlName="address" placeholder="Nhập địa chỉ nhà cung cấp">
+                <mat-error *ngIf="supplierForm.get('address')?.hasError('required')">
+                    Địa chỉ là bắt buộc
+                </mat-error>
+            </mat-form-field>
+
+            <!-- URL logo -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>URL logo</mat-label>
+                <input matInput formControlName="logo" placeholder="Nhập URL logo nhà cung cấp">
+            </mat-form-field>
+
+            <!-- Mô tả -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Mô tả</mat-label>
+                <textarea matInput formControlName="description" placeholder="Nhập mô tả về nhà cung cấp"
+                    rows="3"></textarea>
+            </mat-form-field>
+
+            <!-- Danh mục cung cấp -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Danh mục cung cấp</mat-label>
+                <mat-select formControlName="categories" multiple>
+                    <mat-option *ngFor="let category of data.categories" [value]="category.id">
+                        {{ category.name }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="supplierForm.get('categories')?.hasError('required')">
+                    Danh mục cung cấp là bắt buộc
+                </mat-error>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">Hủy</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="supplierForm.invalid">
+            {{ isEditMode ? 'Lưu' : 'Thêm' }}
+        </button>
+    </div>
+</form>

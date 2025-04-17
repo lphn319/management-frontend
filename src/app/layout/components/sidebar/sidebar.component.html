@@ -1,0 +1,28 @@
+<div class="sidebar-container">
+    <!-- <div class="sidebar-header">
+        <div class="logo">
+            <h2>ADMIN PORTAL</h2>
+        </div>
+    </div>
+
+    <mat-divider></mat-divider> -->
+
+    <div class="nav-items">
+        <mat-nav-list>
+            @for (item of navItems; track item.label) {
+            <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
+                <mat-icon>{{ item.icon }}</mat-icon>
+                <span class="nav-label">{{ item.label }}</span>
+            </a>
+            }
+        </mat-nav-list>
+    </div>
+
+    <div class="sidebar-footer">
+        <mat-divider></mat-divider>
+        <a mat-list-item>
+            <mat-icon>logout</mat-icon>
+            <span class="nav-label">Đăng xuất</span>
+        </a>
+    </div>
+</div>

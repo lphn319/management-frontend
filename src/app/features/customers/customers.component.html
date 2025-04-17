@@ -1,0 +1,236 @@
+<div class="customer-container">
+    <div class="customer-header">
+        <h1>Quản lý khách hàng</h1>
+        <div class="actions">
+            <button mat-raised-button color="primary" (click)="openCustomerDialog()">
+                <mat-icon>add</mat-icon>
+                Thêm khách hàng mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Bộ lọc và tìm kiếm -->
+    <mat-card class="filter-card">
+        <mat-card-content>
+            <div class="filter-container">
+                <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Tìm kiếm khách hàng</mat-label>
+                    <input matInput placeholder="Nhập tên hoặc số điện thoại">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <div class="filter-actions">
+                    <button mat-stroked-button [matMenuTriggerFor]="statusMenu">
+                        <mat-icon>person</mat-icon>
+                        Trạng thái
+                    </button>
+                    <mat-menu #statusMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Đang hoạt động</button>
+                        <button mat-menu-item>Ngừng hoạt động</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="membershipMenu">
+                        <mat-icon>card_membership</mat-icon>
+                        Hạng thành viên
+                    </button>
+                    <mat-menu #membershipMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Thường</button>
+                        <button mat-menu-item>Bạc</button>
+                        <button mat-menu-item>Vàng</button>
+                        <button mat-menu-item>Kim cương</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="dateMenu">
+                        <mat-icon>date_range</mat-icon>
+                        Ngày đăng ký
+                    </button>
+                    <mat-menu #dateMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Hôm nay</button>
+                        <button mat-menu-item>Tuần này</button>
+                        <button mat-menu-item>Tháng này</button>
+                        <button mat-menu-item>Năm nay</button>
+                        <button mat-menu-item>Tùy chỉnh...</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="sortMenu">
+                        <mat-icon>sort</mat-icon>
+                        Sắp xếp
+                    </button>
+                    <mat-menu #sortMenu="matMenu">
+                        <button mat-menu-item>Tên (A-Z)</button>
+                        <button mat-menu-item>Tên (Z-A)</button>
+                        <button mat-menu-item>Đơn hàng (Nhiều nhất)</button>
+                        <button mat-menu-item>Đơn hàng (Ít nhất)</button>
+                        <button mat-menu-item>Mới nhất</button>
+                        <button mat-menu-item>Cũ nhất</button>
+                    </mat-menu>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Thống kê nhanh khách hàng -->
+    <div class="stats-container">
+        <mat-card class="stats-card">
+            <div class="stats-icon total">
+                <mat-icon>people</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Tổng khách hàng</div>
+                <div class="stats-value">{{ customerStats.total }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon active">
+                <mat-icon>person</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Đang hoạt động</div>
+                <div class="stats-value">{{ customerStats.active }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon orders">
+                <mat-icon>shopping_cart</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Tổng đơn hàng</div>
+                <div class="stats-value">{{ customerStats.orders }}</div>
+            </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+            <div class="stats-icon revenue">
+                <mat-icon>payments</mat-icon>
+            </div>
+            <div class="stats-content">
+                <div class="stats-title">Tổng doanh thu</div>
+                <div class="stats-value">{{ formatCurrency(customerStats.revenue) }}</div>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Bảng danh sách khách hàng -->
+    <mat-card class="customer-card">
+        <mat-card-header>
+            <mat-card-title>Danh sách khách hàng</mat-card-title>
+            <button mat-button color="primary">
+                <mat-icon>file_download</mat-icon>
+                Xuất dữ liệu
+            </button>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="customers" class="customer-table">
+                <!-- Cột avatar -->
+                <ng-container matColumnDef="avatar">
+                    <th mat-header-cell *matHeaderCellDef>Ảnh</th>
+                    <td mat-cell *matCellDef="let customer">
+                        <div class="customer-avatar"
+                            [ngStyle]="{'background-color': getAvatarColor(customer.fullName)}">
+                            {{ getInitials(customer.fullName) }}
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột thông tin khách hàng -->
+                <ng-container matColumnDef="info">
+                    <th mat-header-cell *matHeaderCellDef>Thông tin khách hàng</th>
+                    <td mat-cell *matCellDef="let customer">
+                        <div class="customer-name">{{ customer.fullName }}</div>
+                        <div class="customer-contact">
+                            <mat-icon class="contact-icon">phone</mat-icon> {{ customer.phone }}
+                        </div>
+                        <div class="customer-contact">
+                            <mat-icon class="contact-icon">email</mat-icon> {{ customer.email }}
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột địa chỉ -->
+                <ng-container matColumnDef="address">
+                    <th mat-header-cell *matHeaderCellDef>Địa chỉ</th>
+                    <td mat-cell *matCellDef="let customer">
+                        <div class="customer-address">{{ customer.address }}</div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột thành viên -->
+                <ng-container matColumnDef="membership">
+                    <th mat-header-cell *matHeaderCellDef>Hạng thành viên</th>
+                    <td mat-cell *matCellDef="let customer">
+                        <div class="membership-badge" [ngClass]="customer.membership.toLowerCase()">
+                            {{ customer.membership }}
+                        </div>
+                        <div class="points">{{ customer.points }} điểm</div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột đơn hàng -->
+                <ng-container matColumnDef="orders">
+                    <th mat-header-cell *matHeaderCellDef>Đơn hàng</th>
+                    <td mat-cell *matCellDef="let customer">
+                        <div class="order-count">{{ customer.orderCount }} đơn hàng</div>
+                        <div class="order-total">{{ formatCurrency(customer.totalSpent) }}</div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột trạng thái -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                    <td mat-cell *matCellDef="let customer">
+                        <span class="status-badge" [ngClass]="{
+                            'active': customer.status === 'active',
+                            'inactive': customer.status === 'inactive'
+                        }">
+                            {{ customer.status === 'active' ? 'Đang hoạt động' : 'Ngừng hoạt động' }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Cột thao tác -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Thao tác</th>
+                    <td mat-cell *matCellDef="let customer">
+                        <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #actionMenu="matMenu">
+                            <button mat-menu-item (click)="viewCustomerDetail(customer.id)">
+                                <mat-icon>visibility</mat-icon>
+                                <span>Xem chi tiết</span>
+                            </button>
+                            <button mat-menu-item (click)="openCustomerDialog(customer)">
+                                <mat-icon>edit</mat-icon>
+                                <span>Chỉnh sửa</span>
+                            </button>
+                            <button mat-menu-item
+                                (click)="updateStatus(customer.id, customer.status === 'active' ? 'inactive' : 'active')">
+                                <mat-icon>{{ customer.status === 'active' ? 'person_off' : 'person' }}</mat-icon>
+                                <span>{{ customer.status === 'active' ? 'Vô hiệu hóa' : 'Kích hoạt' }}</span>
+                            </button>
+                            <button mat-menu-item (click)="viewCustomerOrders(customer.id)">
+                                <mat-icon>receipt_long</mat-icon>
+                                <span>Xem đơn hàng</span>
+                            </button>
+                            <button mat-menu-item (click)="deleteCustomer(customer.id)">
+                                <mat-icon color="warn">delete</mat-icon>
+                                <span>Xóa</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+
+            <!-- Phân trang -->
+            <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+        </mat-card-content>
+    </mat-card>
+</div>

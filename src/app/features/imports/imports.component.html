@@ -1,0 +1,193 @@
+<div class="import-container">
+    <div class="import-header">
+        <h1>Quản lý nhập hàng</h1>
+        <div class="actions">
+            <button mat-raised-button color="primary" (click)="openImportDialog()">
+                <mat-icon>add</mat-icon>
+                Tạo đơn nhập hàng mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Bộ lọc và tìm kiếm -->
+    <mat-card class="filter-card">
+        <mat-card-content>
+            <div class="filter-container">
+                <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Tìm kiếm đơn nhập hàng</mat-label>
+                    <input matInput placeholder="Nhập mã đơn hoặc tên nhà cung cấp">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <div class="filter-actions">
+                    <button mat-stroked-button [matMenuTriggerFor]="statusMenu">
+                        <mat-icon>assignment</mat-icon>
+                        Trạng thái
+                    </button>
+                    <mat-menu #statusMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Hoàn thành</button>
+                        <button mat-menu-item>Đang xử lý</button>
+                        <button mat-menu-item>Đã hủy</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="supplierMenu">
+                        <mat-icon>business</mat-icon>
+                        Nhà cung cấp
+                    </button>
+                    <mat-menu #supplierMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Samsung Electronics</button>
+                        <button mat-menu-item>Apple Việt Nam</button>
+                        <button mat-menu-item>Dell Việt Nam</button>
+                        <button mat-menu-item>Logitech Vietnam</button>
+                    </mat-menu>
+
+                    <button mat-stroked-button [matMenuTriggerFor]="dateMenu">
+                        <mat-icon>date_range</mat-icon>
+                        Thời gian
+                    </button>
+                    <mat-menu #dateMenu="matMenu">
+                        <button mat-menu-item>Tất cả</button>
+                        <button mat-menu-item>Hôm nay</button>
+                        <button mat-menu-item>Tuần này</button>
+                        <button mat-menu-item>Tháng này</button>
+                        <button mat-menu-item>Tùy chỉnh...</button>
+                    </mat-menu>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Bảng đơn nhập hàng -->
+    <mat-card class="import-card">
+        <mat-card-header>
+            <mat-card-title>Danh sách đơn nhập hàng</mat-card-title>
+            <button mat-button color="primary">
+                <mat-icon>file_download</mat-icon>
+                Xuất dữ liệu
+            </button>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="imports" class="import-table">
+                <!-- Cột mã đơn nhập -->
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef>Mã đơn</th>
+                    <td mat-cell *matCellDef="let import">
+                        <div class="import-id">#{{ import.id }}</div>
+                        <div class="import-date">{{ import.createdAt | date:'dd/MM/yyyy' }}</div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột nhà cung cấp -->
+                <ng-container matColumnDef="supplier">
+                    <th mat-header-cell *matHeaderCellDef>Nhà cung cấp</th>
+                    <td mat-cell *matCellDef="let import">
+                        <div class="supplier-info">
+                            <div class="supplier-logo">
+                                <img [src]="import.supplier.logo" [alt]="import.supplier.name"
+                                    onerror="this.src='assets/images/placeholder.jpg'">
+                            </div>
+                            <div class="supplier-detail">
+                                <div class="supplier-name">{{ import.supplier.name }}</div>
+                                <div class="supplier-contact">{{ import.supplier.phone }}</div>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột sản phẩm -->
+                <ng-container matColumnDef="products">
+                    <th mat-header-cell *matHeaderCellDef>Sản phẩm</th>
+                    <td mat-cell *matCellDef="let import">
+                        <div class="product-count">{{ import.products.length }} sản phẩm</div>
+                    </td>
+                </ng-container>
+
+                <!-- Cột số lượng -->
+                <ng-container matColumnDef="quantity">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng</th>
+                    <td mat-cell *matCellDef="let import">
+                        {{ import.quantity }}
+                    </td>
+                </ng-container>
+
+                <!-- Cột tổng tiền -->
+                <ng-container matColumnDef="totalAmount">
+                    <th mat-header-cell *matHeaderCellDef>Tổng tiền</th>
+                    <td mat-cell *matCellDef="let import">{{ formatCurrency(import.totalAmount) }}</td>
+                </ng-container>
+
+                <!-- Cột nhân viên -->
+                <ng-container matColumnDef="employee">
+                    <th mat-header-cell *matHeaderCellDef>Nhân viên</th>
+                    <td mat-cell *matCellDef="let import">{{ import.employee.fullName }}</td>
+                </ng-container>
+
+                <!-- Cột trạng thái -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                    <td mat-cell *matCellDef="let import">
+                        <span class="status-badge" [ngClass]="{
+                            'completed': import.status === 'completed',
+                            'processing': import.status === 'processing',
+                            'cancelled': import.status === 'cancelled'
+                        }">
+                            <mat-icon class="status-icon">
+                                {{
+                                import.status === 'completed' ? 'check_circle' :
+                                import.status === 'processing' ? 'hourglass_top' : 'cancel'
+                                }}
+                            </mat-icon>
+                            {{
+                            import.status === 'completed' ? 'Hoàn thành' :
+                            import.status === 'processing' ? 'Đang xử lý' : 'Đã hủy'
+                            }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Cột thao tác -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Thao tác</th>
+                    <td mat-cell *matCellDef="let import">
+                        <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #actionMenu="matMenu">
+                            <button mat-menu-item (click)="viewImportDetail(import.id)">
+                                <mat-icon>visibility</mat-icon>
+                                <span>Xem chi tiết</span>
+                            </button>
+                            <button mat-menu-item *ngIf="import.status === 'processing'"
+                                (click)="openImportDialog(import)">
+                                <mat-icon>edit</mat-icon>
+                                <span>Chỉnh sửa</span>
+                            </button>
+                            <button mat-menu-item *ngIf="import.status === 'processing'"
+                                (click)="updateStatus(import.id, 'completed')">
+                                <mat-icon color="accent">check_circle</mat-icon>
+                                <span>Hoàn thành</span>
+                            </button>
+                            <button mat-menu-item *ngIf="import.status === 'processing'"
+                                (click)="updateStatus(import.id, 'cancelled')">
+                                <mat-icon color="warn">cancel</mat-icon>
+                                <span>Hủy đơn</span>
+                            </button>
+                            <button mat-menu-item (click)="printImport(import.id)">
+                                <mat-icon>print</mat-icon>
+                                <span>In đơn nhập</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+
+            <!-- Phân trang -->
+            <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+        </mat-card-content>
+    </mat-card>
+</div>

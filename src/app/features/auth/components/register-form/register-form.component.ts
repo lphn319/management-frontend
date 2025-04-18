@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,7 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatStepperModule } from '@angular/material/stepper';
-import { NgIf } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register-form',
@@ -25,7 +25,6 @@ import { NgIf } from '@angular/common';
     MatCardModule,
     MatDividerModule,
     MatStepperModule,
-    // NgIf
   ],
   templateUrl: './register-form.component.html',
   styleUrl: './register-form.component.scss'
@@ -39,7 +38,7 @@ export class RegisterFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    // private authService: AuthService,
+    private authService: AuthService,
     private router: Router
   ) { }
 
@@ -49,7 +48,7 @@ export class RegisterFormComponent implements OnInit {
 
   private initForm(): void {
     this.registerForm = this.fb.group({
-      fullName: ['', [Validators.required, Validators.minLength(3)]],
+      name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
@@ -81,28 +80,26 @@ export class RegisterFormComponent implements OnInit {
     this.isLoading = true;
     this.registerError = '';
 
-    // Trong ứng dụng thực tế, gọi API đăng ký
-    // this.authService.register(this.registerForm.value)
-    //   .subscribe({
-    //     next: () => {
-    //       this.isLoading = false;
-    //       this.router.navigate(['/login'], { queryParams: { registered: 'success' } });
-    //     },
-    //     error: (error) => {
-    //       this.isLoading = false;
-    //       this.registerError = error?.error?.message || 'Đăng ký thất bại. Vui lòng thử lại.';
-    //     }
-    //   });
+    // Lấy dữ liệu từ form, loại bỏ confirmPassword và agreeTerms
+    const { confirmPassword, agreeTerms, ...registerData } = this.registerForm.value;
 
-    // Giả lập API call
-    setTimeout(() => {
-      this.isLoading = false;
-      this.router.navigate(['/login'], { queryParams: { registered: 'success' } });
-    }, 1500);
+    console.log('Register payload:', registerData);
+
+    this.authService.register(registerData).subscribe({
+      next: () => {
+        this.isLoading = false;
+        // Đăng ký thành công, chuyển hướng sang trang đăng nhập
+        this.router.navigate(['/login'], { queryParams: { registered: 'success' } });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.registerError = err?.error?.message || 'Đăng ký thất bại. Vui lòng thử lại!';
+      }
+    });
   }
 
-  getFullNameErrorMessage(): string {
-    const control = this.registerForm.get('fullName');
+  getNameErrorMessage(): string {
+    const control = this.registerForm.get('name');
     if (control?.hasError('required')) {
       return 'Họ tên không được để trống';
     }

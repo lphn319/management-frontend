@@ -18,11 +18,11 @@
                 <!-- Full Name field -->
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Họ và tên</mat-label>
-                    <input matInput type="text" formControlName="fullName" placeholder="Nguyễn Văn A" required>
+                    <input matInput type="text" formControlName="name" placeholder="Nguyễn Văn A" required>
                     <mat-icon matPrefix>person</mat-icon>
-                    @if (registerForm.get('fullName')?.invalid && (registerForm.get('fullName')?.dirty ||
-                    registerForm.get('fullName')?.touched)) {
-                    <mat-error>{{ getFullNameErrorMessage() }}</mat-error>
+                    @if (registerForm.get('name')?.invalid && (registerForm.get('name')?.dirty ||
+                    registerForm.get('name')?.touched)) {
+                    <mat-error>{{ getNameErrorMessage() }}</mat-error>
                     }
                 </mat-form-field>
 
@@ -105,7 +105,7 @@
                 <!-- Login link -->
                 <div class="login-link">
                     <span>Đã có tài khoản? </span>
-                    <a href="login" class="accent-color">Đăng nhập</a>
+                    <a href="/login" class="accent-color">Đăng nhập</a>
                 </div>
             </form>
         </mat-card-content>

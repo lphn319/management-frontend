@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api/api.service';
-import { ApiResponse } from '../../../core/models/api-response.model';
 import { AuthResponse } from '../models/auth.model';
 import { LoginRequest } from '../models/login-request.model';
 import { UserLogin, UserRole } from '../models/user.model';
+import { RegisterRequest } from '../models/register-request.model';
 
 @Injectable({
   providedIn: 'root'
@@ -202,5 +201,21 @@ export class AuthService {
     } catch (error) {
       console.error('Error storing auth data:', error);
     }
+  }
+
+  register(registerRequest: RegisterRequest): Observable<any> {
+    return this.apiService.post('auth/register', registerRequest)
+      .pipe(
+        map(response => {
+          if (!response || !response.data) {
+            throw new Error('Phản hồi không hợp lệ từ máy chủ');
+          }
+          return response.data;
+        }),
+        catchError(error => {
+          console.error('Register error:', error);
+          return throwError(() => error);
+        })
+      );
   }
 }

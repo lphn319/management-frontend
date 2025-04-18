@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Brand, BrandRequest } from '../models/brand.model';
+import { Brand } from '../models/brand.model';
 import { ApiService } from '../../../../core/services/api/api.service';
 import { BaseService } from '../../../../core/services/base/base.service';
 
@@ -15,7 +15,6 @@ export class BrandService extends BaseService<Brand> {
     super(apiService);
   }
 
-  // Chỉ cần thêm các phương thức đặc thù cho Brand
   updateStatus(id: number, status: string): Observable<Brand> {
     return this.apiService.patch<Brand>(`${this.endpoint}/${id}/status`, { status })
       .pipe(

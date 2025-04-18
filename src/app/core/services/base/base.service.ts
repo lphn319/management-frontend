@@ -1,7 +1,6 @@
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from '../api/api.service';
-import { ApiResponse } from '../../models/api-response.model';
 
 export abstract class BaseService<T> {
   protected abstract endpoint: string;

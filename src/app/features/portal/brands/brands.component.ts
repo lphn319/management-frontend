@@ -272,6 +272,8 @@ export class BrandsComponent implements OnInit {
     if (this.brands.paginator) {
       this.brands.paginator.firstPage();
     }
+
+
   }
 
   // Hiển thị thông báo

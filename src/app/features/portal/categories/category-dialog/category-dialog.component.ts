@@ -6,19 +6,8 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-
-interface Category {
-  id: number;
-  name: string;
-  description: string;
-  parentId?: number;
-  status: 'active' | 'inactive';
-}
-
-interface DialogData {
-  category?: any;
-  categories: { id: number; name: string }[];
-}
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { DialogData } from '../models/category.model';
 
 @Component({
   selector: 'app-category-dialog',
@@ -30,7 +19,8 @@ interface DialogData {
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatSlideToggleModule
   ],
   templateUrl: './category-dialog.component.html',
   styleUrl: './category-dialog.component.scss'
@@ -38,6 +28,7 @@ interface DialogData {
 export class CategoryDialogComponent implements OnInit {
   categoryForm!: FormGroup;
   isEditMode: boolean = false;
+  submitAttempted = false;
 
   constructor(
     private fb: FormBuilder,
@@ -53,48 +44,80 @@ export class CategoryDialogComponent implements OnInit {
   initForm(): void {
     // Lấy parent ID nếu có
     let parentId = null;
-    if (this.data.category && this.data.category.parent) {
-      parentId = this.data.category.parent.id;
+    if (this.data.category && this.data.category.parentId) {
+      parentId = this.data.category.parentId;
     }
 
     this.categoryForm = this.fb.group({
-      name: [this.data.category?.name || '', Validators.required],
-      description: [this.data.category?.description || ''],
+      name: [this.data.category?.name || '', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(100)
+      ]],
+      description: [this.data.category?.description || '', [
+        Validators.maxLength(500)
+      ]],
       parentId: [parentId],
-      status: [this.data.category?.status || 'active']
+      status: [this.data.category?.status || 'ACTIVE']
     });
   }
 
   onSubmit(): void {
+    this.submitAttempted = true;
+
     if (this.categoryForm.valid) {
       const formData = this.categoryForm.value;
 
-      // Tìm parent cho danh mục
-      let parent = null;
-      if (formData.parentId) {
-        const parentCategory = this.data.categories.find(c => c.id === formData.parentId);
-        if (parentCategory) {
-          parent = {
-            id: parentCategory.id,
-            name: parentCategory.name
-          };
-        }
-      }
-
       const result = {
-        ...(this.data.category || { id: Math.floor(Math.random() * 1000) + 11 }),
+        ...(this.data.category || {}),
+        id: this.data.category?.id,
         name: formData.name,
         description: formData.description,
-        parent: parent,
+        parentId: formData.parentId,
         status: formData.status,
         productCount: this.data.category?.productCount || 0  // Giữ nguyên số lượng sản phẩm hoặc mặc định là 0
       };
 
       this.dialogRef.close(result);
+    } else {
+      // Hiển thị lỗi và focus vào trường đầu tiên có lỗi
+      const formControls = this.categoryForm.controls;
+      for (const controlName in formControls) {
+        if (formControls[controlName].invalid) {
+          const invalidControl = document.querySelector(`[formControlName="${controlName}"]`);
+          invalidControl && (invalidControl as HTMLElement).focus();
+          break;
+        }
+      }
     }
   }
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  // Helper cho việc kiểm tra lỗi
+  getErrorMessage(controlName: string): string {
+    const control = this.categoryForm.get(controlName);
+
+    if (control?.hasError('required')) {
+      return 'Trường này là bắt buộc';
+    }
+
+    if (control?.hasError('minlength')) {
+      return `Cần tối thiểu ${control.getError('minlength').requiredLength} ký tự`;
+    }
+
+    if (control?.hasError('maxlength')) {
+      return `Không được vượt quá ${control.getError('maxlength').requiredLength} ký tự`;
+    }
+
+    return '';
+  }
+
+  // Kiểm tra xem control có lỗi và đã touched hoặc đã submit chưa
+  isFieldInvalid(controlName: string): boolean {
+    const control = this.categoryForm.get(controlName);
+    return !!(control && control.invalid && (control.touched || this.submitAttempted));
   }
 }

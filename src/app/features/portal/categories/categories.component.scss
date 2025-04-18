@@ -305,7 +305,7 @@ $transition-function: ease;
     }
 }
 
-// Category tree card
+// Category tree styling
 .category-tree-card {
     @include card-base;
     height: fit-content;
@@ -327,41 +327,172 @@ $transition-function: ease;
     }
 }
 
-// Tree styling
-.tree-invisible {
+// Tree styling - Cập nhật để hoạt động tốt hơn với cấu trúc lồng nhau
+.nested-tree-invisible {
     display: none;
 }
 
 .tree-node-name {
     font-weight: 500;
     color: rgba(0, 0, 0, 0.8);
+    margin-right: 6px;
 }
 
 .tree-node-count {
-    margin-left: 6px;
     color: $text-secondary;
     font-size: 12px;
 }
 
-mat-tree {
-    .mat-nested-tree-node {
-        div[role=group] {
-            padding-left: 40px;
-        }
-    }
+.example-tree {
 
-    .mat-tree-node {
+    // Styling cho các node
+    .mat-tree-node,
+    .mat-nested-tree-node div.mat-tree-node {
         min-height: 40px;
         cursor: pointer;
         transition: background-color 0.2s ease;
         border-radius: 4px;
+        padding: 0;
+        display: flex;
+        align-items: center;
 
         &:hover {
             background-color: rgba($primary-color, 0.04);
         }
 
-        &:focus {
-            outline: none;
+        button {
+            margin-right: 8px;
         }
+    }
+
+    // Styling cho các container lồng nhau
+    .nested-tree-container {
+        padding-left: 24px;
+        overflow: hidden;
+    }
+
+    // Styling cho các node con
+    .mat-nested-tree-node {
+        .mat-nested-tree-node {
+            margin-left: 16px;
+        }
+    }
+
+    // Animation khi mở/đóng node
+    .nested-tree-container {
+        transition: height 0.3s ease-in-out;
+
+        &.nested-tree-invisible {
+            height: 0;
+            opacity: 0;
+        }
+    }
+
+    // Icon màu sắc và animation
+    .mat-icon-rtl-mirror {
+        color: $primary-color;
+        transition: transform 0.3s ease;
+    }
+
+    // Animation cho icon khi mở rộng
+    .mat-tree-node:hover .mat-icon-rtl-mirror,
+    .mat-nested-tree-node div.mat-tree-node:hover .mat-icon-rtl-mirror {
+        transform: rotate(90deg);
+    }
+
+    // Reset transform khi đã mở rộng
+    .mat-tree-node:hover .mat-icon-rtl-mirror:not([aria-expanded="true"]),
+    .mat-nested-tree-node div.mat-tree-node:hover .mat-icon-rtl-mirror:not([aria-expanded="true"]) {
+        transform: rotate(0);
+    }
+}
+
+// Visual indication for active nodes
+.tree-node-active {
+    background-color: rgba($primary-color, 0.08) !important;
+    font-weight: 600;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 3px;
+        background-color: $primary-color;
+    }
+}
+
+// No data message styling
+.no-data-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    color: $text-secondary;
+
+    mat-icon {
+        font-size: 48px;
+        height: 48px;
+        width: 48px;
+        margin-bottom: 16px;
+        opacity: 0.6;
+    }
+
+    p {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+}
+
+// Tree node status
+.tree-node-status {
+    font-size: 12px;
+    margin-left: 8px;
+
+    &.active {
+        color: $success-color;
+    }
+
+    &.inactive {
+        color: $text-secondary;
+    }
+}
+
+// Category dialog form grid
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// Status badges styling
+.status-badge {
+    &.ACTIVE {
+        @include status-style($success-color);
+    }
+
+    &.INACTIVE {
+        @include status-style($text-secondary);
+    }
+}
+
+// Nested tree container animation
+.nested-tree-container {
+    overflow: hidden;
+    transition: height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+
+    &.nested-tree-invisible {
+        height: 0;
+        opacity: 0;
     }
 }

@@ -8,9 +8,10 @@
             <!-- Tên danh mục -->
             <mat-form-field appearance="outline">
                 <mat-label>Tên danh mục</mat-label>
-                <input matInput formControlName="name" placeholder="Nhập tên danh mục">
-                <mat-error *ngIf="categoryForm.get('name')?.hasError('required')">
-                    Tên danh mục là bắt buộc
+                <input matInput formControlName="name" placeholder="Nhập tên danh mục" #nameInput>
+                <mat-hint align="end">{{ nameInput.value.length || 0 }}/100</mat-hint>
+                <mat-error *ngIf="isFieldInvalid('name')">
+                    {{ getErrorMessage('name') }}
                 </mat-error>
             </mat-form-field>
 
@@ -30,22 +31,27 @@
             <mat-form-field appearance="outline">
                 <mat-label>Trạng thái</mat-label>
                 <mat-select formControlName="status">
-                    <mat-option value="active">Đang hoạt động</mat-option>
-                    <mat-option value="inactive">Ẩn</mat-option>
+                    <mat-option value="ACTIVE">Đang hoạt động</mat-option>
+                    <mat-option value="INACTIVE">Ẩn</mat-option>
                 </mat-select>
             </mat-form-field>
 
             <!-- Mô tả -->
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Mô tả</mat-label>
-                <textarea matInput formControlName="description" placeholder="Nhập mô tả danh mục" rows="3"></textarea>
+                <textarea matInput formControlName="description" placeholder="Nhập mô tả danh mục" rows="3"
+                    #descInput></textarea>
+                <mat-hint align="end">{{ descInput.value.length || 0 }}/500</mat-hint>
+                <mat-error *ngIf="isFieldInvalid('description')">
+                    {{ getErrorMessage('description') }}
+                </mat-error>
             </mat-form-field>
         </div>
     </div>
 
     <div mat-dialog-actions align="end">
         <button mat-button type="button" (click)="onCancel()">Hủy</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="categoryForm.invalid">
+        <button mat-raised-button color="primary" type="submit">
             {{ isEditMode ? 'Lưu' : 'Thêm' }}
         </button>
     </div>

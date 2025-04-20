@@ -20,7 +20,7 @@ import { finalize, catchError } from 'rxjs';
 import { BrandRequest } from './models/brand.model';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient } from '@angular/common/http';
-import { ApiResponse, ApiResponseHelper } from '../../../core/models/api-response.model';
+import { ApiResponse } from '../../../core/models/api-response.model';
 
 @Component({
   selector: 'app-brands',

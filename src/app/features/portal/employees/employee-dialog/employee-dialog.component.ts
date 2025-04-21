@@ -1,3 +1,5 @@
+// src/app/features/admin/employees/employee-dialog/employee-dialog.component.ts
+
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -9,42 +11,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTabsModule } from '@angular/material/tabs';
-
-interface Department {
-  id: number;
-  name: string;
-}
-
-interface Role {
-  id: number;
-  name: string;
-  permissions: string[];
-}
-
-interface Employee {
-  id: number;
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  department: Department;
-  role: Role;
-  salary: number;
-  hireDate: Date;
-  status: 'active' | 'inactive' | 'on_leave';
-  lastActive: Date;
-  avatar?: string;
-}
-
-interface DialogData {
-  employee?: Employee;
-  departments: Department[];
-  roles: Role[];
-  viewOnly?: boolean;
-}
+import { DialogData } from '../models/employee.model';
+import { Department } from '../../departments/models/department.model';
+import { Role } from '../../roles/models/role.model';
 
 @Component({
   selector: 'app-employee-dialog',
@@ -60,7 +31,6 @@ interface DialogData {
     MatIconModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatDividerModule,
     MatChipsModule,
     MatTabsModule
   ],
@@ -73,8 +43,9 @@ export class EmployeeDialogComponent implements OnInit {
   viewOnly: boolean = false;
   departments: Department[] = [];
   roles: Role[] = [];
+  hidePassword: boolean = true;
 
-  // Permission display
+  // Ánh xạ tên quyền
   permissionLabels: { [key: string]: string } = {
     'all': 'Tất cả quyền',
     'view_employees': 'Xem nhân viên',
@@ -94,26 +65,29 @@ export class EmployeeDialogComponent implements OnInit {
   ) {
     this.departments = data.departments;
     this.roles = data.roles;
+    this.viewOnly = !!data.viewOnly;
   }
 
   ngOnInit(): void {
     this.isEditMode = !!this.data.employee;
-    this.viewOnly = !!this.data.viewOnly;
     this.initForm();
   }
 
   initForm(): void {
+    const passwordValidators = this.isEditMode
+      ? [] // Không bắt buộc khi chỉnh sửa
+      : [Validators.required, Validators.minLength(6)];
+
     this.employeeForm = this.fb.group({
-      fullName: [this.data.employee?.fullName || '', Validators.required],
+      name: [this.data.employee?.name || '', [Validators.required, Validators.minLength(2)]],
       email: [this.data.employee?.email || '', [Validators.required, Validators.email]],
-      phone: [this.data.employee?.phone || '', [Validators.required, Validators.pattern('^[0-9]{10,11}$')]],
-      address: [this.data.employee?.address || '', Validators.required],
-      department: [this.data.employee?.department.id || '', Validators.required],
-      role: [this.data.employee?.role.id || '', Validators.required],
-      salary: [this.data.employee?.salary || 0, [Validators.required, Validators.min(0)]],
-      hireDate: [this.data.employee?.hireDate || new Date(), Validators.required],
-      status: [this.data.employee?.status || 'active'],
-      lastActive: [this.data.employee?.lastActive || new Date()]
+      phoneNumber: [this.data.employee?.phoneNumber || '', [Validators.required, Validators.pattern('^(0|\\+84)[0-9]{9}$')]],
+      password: ['', passwordValidators],
+      dateOfBirth: [this.data.employee?.dateOfBirth || null, Validators.required],
+      gender: [this.data.employee?.gender || 'MALE', Validators.required],
+      departmentId: [this.getDepartmentIdByName(this.data.employee?.departmentName) || '', Validators.required],
+      roleId: [this.getRoleIdByName(this.data.employee?.roleName) || '', Validators.required],
+      isActive: [this.data.employee?.isActive ?? true]
     });
 
     // Nếu ở chế độ chỉ xem thì disable form
@@ -121,82 +95,86 @@ export class EmployeeDialogComponent implements OnInit {
       this.employeeForm.disable();
     }
 
-    // Listen for role change to show permissions
-    this.employeeForm.get('role')?.valueChanges.subscribe(roleId => {
-      // You can update UI based on role permissions if needed
+    // Lắng nghe thay đổi role để cập nhật danh sách quyền hiển thị
+    this.employeeForm.get('roleId')?.valueChanges.subscribe(() => {
+      // Có thể thêm logic xử lý khi role thay đổi
     });
   }
 
-  // Format currency
-  formatCurrency(value: number): string {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+  // Lấy ID phòng ban từ tên
+  getDepartmentIdByName(name?: string): number | null {
+    if (!name) return null;
+    const department = this.departments.find(d => d.name === name);
+    return department ? department.id : null;
   }
 
-  // Get permissions for selected role
+  // Lấy ID vai trò từ tên
+  getRoleIdByName(name?: string): number | null {
+    if (!name) return null;
+    const role = this.roles.find(r => r.name === name);
+    return role ? role.id : null;
+  }
+
+  // Lấy quyền của vai trò đã chọn
   getSelectedRolePermissions(): string[] {
-    const roleId = this.employeeForm.get('role')?.value;
+    const roleId = this.employeeForm.get('roleId')?.value;
     const selectedRole = this.roles.find(r => r.id === roleId);
     return selectedRole ? selectedRole.permissions : [];
   }
 
-  // Get department by id
-  getDepartmentById(id: number): Department | undefined {
-    return this.departments.find(d => d.id === id);
-  }
-
-  // Get role by id
-  getRoleById(id: number): Role | undefined {
-    return this.roles.find(r => r.id === id);
-  }
-
-  // Get status text
-  getStatusText(status: string): string {
-    switch (status) {
-      case 'active': return 'Đang làm việc';
-      case 'inactive': return 'Đã nghỉ việc';
-      case 'on_leave': return 'Đang nghỉ phép';
-      default: return status;
-    }
-  }
-
-  // Xem lịch sử hoạt động
-  viewActivityHistory(): void {
-    this.dialogRef.close('view_history');
-  }
-
   onSubmit(): void {
     if (this.employeeForm.valid) {
-      const formData = this.employeeForm.getRawValue(); // Lấy cả các trường disabled
+      const result = this.employeeForm.value;
 
-      // Lấy thông tin department và role từ ID
-      const department = this.getDepartmentById(formData.department);
-      const role = this.getRoleById(formData.role);
-
-      if (!department || !role) {
-        console.error('Department or Role not found');
-        return;
+      // Nếu không nhập mật khẩu khi cập nhật, xóa trường password
+      if (this.isEditMode && !result.password) {
+        delete result.password;
       }
 
-      // Prepare employee data
-      const result = {
-        ...(this.data.employee || { id: Math.floor(Math.random() * 1000) + 11 }),
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        department: department,
-        role: role,
-        salary: formData.salary,
-        hireDate: formData.hireDate,
-        status: formData.status,
-        lastActive: formData.lastActive
-      };
-
       this.dialogRef.close(result);
+    } else {
+      // Đánh dấu tất cả các trường là đã chạm vào để hiển thị lỗi
+      Object.keys(this.employeeForm.controls).forEach(key => {
+        const control = this.employeeForm.get(key);
+        control?.markAsTouched();
+      });
     }
   }
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  // Kiểm tra lỗi form
+  getErrorMessage(controlName: string): string {
+    const control = this.employeeForm.get(controlName);
+
+    if (control?.hasError('required')) {
+      return 'Trường này là bắt buộc';
+    }
+
+    if (control?.hasError('email')) {
+      return 'Email không hợp lệ';
+    }
+
+    if (control?.hasError('minlength')) {
+      const minLength = control.getError('minlength').requiredLength;
+      return `Cần tối thiểu ${minLength} ký tự`;
+    }
+
+    if (control?.hasError('pattern')) {
+      if (controlName === 'phoneNumber') {
+        return 'Số điện thoại không hợp lệ (bắt đầu bằng 0 hoặc +84, 10 số)';
+      }
+      return 'Định dạng không hợp lệ';
+    }
+
+    return '';
+  }
+
+  // Kiểm tra trạng thái lỗi của trường
+  isFieldInvalid(controlName: string): boolean {
+    const control = this.employeeForm.get(controlName);
+    return !!control && control.invalid && (control.dirty || control.touched);
   }
 }

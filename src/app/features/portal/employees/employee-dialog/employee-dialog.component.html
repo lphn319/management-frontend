@@ -13,10 +13,10 @@
                     <!-- Họ và tên -->
                     <mat-form-field appearance="outline">
                         <mat-label>Họ và tên</mat-label>
-                        <input matInput formControlName="fullName" placeholder="Nhập họ tên nhân viên"
+                        <input matInput formControlName="name" placeholder="Nhập họ tên nhân viên"
                             [readonly]="viewOnly">
-                        <mat-error *ngIf="employeeForm.get('fullName')?.hasError('required')">
-                            Họ tên là bắt buộc
+                        <mat-error *ngIf="isFieldInvalid('name')">
+                            {{ getErrorMessage('name') }}
                         </mat-error>
                     </mat-form-field>
 
@@ -25,33 +25,57 @@
                         <mat-label>Email</mat-label>
                         <input matInput formControlName="email" placeholder="Nhập email" type="email"
                             [readonly]="viewOnly">
-                        <mat-error *ngIf="employeeForm.get('email')?.hasError('required')">
-                            Email là bắt buộc
-                        </mat-error>
-                        <mat-error *ngIf="employeeForm.get('email')?.hasError('email')">
-                            Email không hợp lệ
+                        <mat-error *ngIf="isFieldInvalid('email')">
+                            {{ getErrorMessage('email') }}
                         </mat-error>
                     </mat-form-field>
 
                     <!-- Số điện thoại -->
                     <mat-form-field appearance="outline">
                         <mat-label>Số điện thoại</mat-label>
-                        <input matInput formControlName="phone" placeholder="Nhập số điện thoại" [readonly]="viewOnly">
-                        <mat-error *ngIf="employeeForm.get('phone')?.hasError('required')">
-                            Số điện thoại là bắt buộc
-                        </mat-error>
-                        <mat-error *ngIf="employeeForm.get('phone')?.hasError('pattern')">
-                            Số điện thoại không hợp lệ
+                        <input matInput formControlName="phoneNumber" placeholder="Nhập số điện thoại"
+                            [readonly]="viewOnly">
+                        <mat-error *ngIf="isFieldInvalid('phoneNumber')">
+                            {{ getErrorMessage('phoneNumber') }}
                         </mat-error>
                     </mat-form-field>
 
-                    <!-- Địa chỉ -->
-                    <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Địa chỉ</mat-label>
-                        <textarea matInput formControlName="address" placeholder="Nhập địa chỉ nhân viên" rows="2"
-                            [readonly]="viewOnly"></textarea>
-                        <mat-error *ngIf="employeeForm.get('address')?.hasError('required')">
-                            Địa chỉ là bắt buộc
+                    <!-- Mật khẩu (chỉ hiển thị khi thêm mới hoặc sửa) -->
+                    <mat-form-field appearance="outline" *ngIf="!viewOnly">
+                        <mat-label>{{ isEditMode ? 'Mật khẩu mới (để trống nếu không đổi)' : 'Mật khẩu' }}</mat-label>
+                        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+                        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword"
+                            [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword" type="button">
+                            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                        </button>
+                        <mat-error *ngIf="isFieldInvalid('password')">
+                            {{ getErrorMessage('password') }}
+                        </mat-error>
+                    </mat-form-field>
+
+                    <!-- Ngày sinh -->
+                    <mat-form-field appearance="outline">
+                        <mat-label>Ngày sinh</mat-label>
+                        <input matInput [matDatepicker]="birthDatePicker" formControlName="dateOfBirth"
+                            [readonly]="viewOnly">
+                        <mat-datepicker-toggle matSuffix [for]="birthDatePicker"
+                            [disabled]="viewOnly"></mat-datepicker-toggle>
+                        <mat-datepicker #birthDatePicker></mat-datepicker>
+                        <mat-error *ngIf="isFieldInvalid('dateOfBirth')">
+                            Ngày sinh là bắt buộc
+                        </mat-error>
+                    </mat-form-field>
+
+                    <!-- Giới tính -->
+                    <mat-form-field appearance="outline">
+                        <mat-label>Giới tính</mat-label>
+                        <mat-select formControlName="gender" [disabled]="viewOnly">
+                            <mat-option value="MALE">Nam</mat-option>
+                            <mat-option value="FEMALE">Nữ</mat-option>
+                            <mat-option value="OTHER">Khác</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="isFieldInvalid('gender')">
+                            Giới tính là bắt buộc
                         </mat-error>
                     </mat-form-field>
                 </div>
@@ -65,26 +89,26 @@
                     <!-- Phòng ban -->
                     <mat-form-field appearance="outline">
                         <mat-label>Phòng ban</mat-label>
-                        <mat-select formControlName="department" [disabled]="viewOnly">
+                        <mat-select formControlName="departmentId" [disabled]="viewOnly">
                             <mat-option *ngFor="let dept of departments" [value]="dept.id">
                                 {{ dept.name }}
                             </mat-option>
                         </mat-select>
-                        <mat-error *ngIf="employeeForm.get('department')?.hasError('required')">
+                        <mat-error *ngIf="isFieldInvalid('departmentId')">
                             Phòng ban là bắt buộc
                         </mat-error>
                     </mat-form-field>
 
-                    <!-- Chức vụ -->
+                    <!-- Vai trò -->
                     <mat-form-field appearance="outline">
-                        <mat-label>Chức vụ</mat-label>
-                        <mat-select formControlName="role" [disabled]="viewOnly">
+                        <mat-label>Vai trò</mat-label>
+                        <mat-select formControlName="roleId" [disabled]="viewOnly">
                             <mat-option *ngFor="let role of roles" [value]="role.id">
                                 {{ role.name }}
                             </mat-option>
                         </mat-select>
-                        <mat-error *ngIf="employeeForm.get('role')?.hasError('required')">
-                            Chức vụ là bắt buộc
+                        <mat-error *ngIf="isFieldInvalid('roleId')">
+                            Vai trò là bắt buộc
                         </mat-error>
                     </mat-form-field>
 
@@ -102,48 +126,13 @@
                         </div>
                     </div>
 
-                    <!-- Mức lương -->
-                    <mat-form-field appearance="outline">
-                        <mat-label>Mức lương (VND)</mat-label>
-                        <input matInput formControlName="salary" type="number" placeholder="Nhập mức lương" min="0"
-                            [readonly]="viewOnly">
-                        <mat-error *ngIf="employeeForm.get('salary')?.hasError('required')">
-                            Mức lương là bắt buộc
-                        </mat-error>
-                        <mat-error *ngIf="employeeForm.get('salary')?.hasError('min')">
-                            Mức lương không thể âm
-                        </mat-error>
-                    </mat-form-field>
-
-                    <!-- Ngày vào làm -->
-                    <mat-form-field appearance="outline">
-                        <mat-label>Ngày vào làm</mat-label>
-                        <input matInput [matDatepicker]="hireDatePicker" formControlName="hireDate"
-                            [readonly]="viewOnly">
-                        <mat-datepicker-toggle matSuffix [for]="hireDatePicker"
-                            [disabled]="viewOnly"></mat-datepicker-toggle>
-                        <mat-datepicker #hireDatePicker></mat-datepicker>
-                        <mat-error *ngIf="employeeForm.get('hireDate')?.hasError('required')">
-                            Ngày vào làm là bắt buộc
-                        </mat-error>
-                    </mat-form-field>
-
                     <!-- Trạng thái -->
                     <mat-form-field appearance="outline">
                         <mat-label>Trạng thái</mat-label>
-                        <mat-select formControlName="status" [disabled]="viewOnly">
-                            <mat-option value="active">Đang làm việc</mat-option>
-                            <mat-option value="on_leave">Đang nghỉ phép</mat-option>
-                            <mat-option value="inactive">Đã nghỉ việc</mat-option>
+                        <mat-select formControlName="isActive" [disabled]="viewOnly">
+                            <mat-option [value]="true">Đang làm việc</mat-option>
+                            <mat-option [value]="false">Đã nghỉ việc</mat-option>
                         </mat-select>
-                    </mat-form-field>
-
-                    <!-- Thời gian hoạt động gần nhất -->
-                    <mat-form-field appearance="outline" *ngIf="isEditMode || viewOnly">
-                        <mat-label>Hoạt động gần nhất</mat-label>
-                        <input matInput [matDatepicker]="lastActivePicker" formControlName="lastActive" readonly>
-                        <mat-datepicker-toggle matSuffix [for]="lastActivePicker" disabled></mat-datepicker-toggle>
-                        <mat-datepicker #lastActivePicker></mat-datepicker>
                     </mat-form-field>
                 </div>
             </mat-tab>
@@ -156,10 +145,6 @@
         </button>
         <button mat-raised-button color="primary" type="submit" *ngIf="!viewOnly" [disabled]="employeeForm.invalid">
             {{ isEditMode ? 'Lưu' : 'Thêm' }}
-        </button>
-        <button mat-stroked-button color="primary" type="button" *ngIf="viewOnly" (click)="viewActivityHistory()">
-            <mat-icon>history</mat-icon>
-            Xem lịch sử hoạt động
         </button>
     </div>
 </form>

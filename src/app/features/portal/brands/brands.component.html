@@ -15,47 +15,45 @@
             <div class="filter-container">
                 <mat-form-field appearance="outline" class="search-field">
                     <mat-label>Tìm kiếm thương hiệu</mat-label>
-                    <input matInput placeholder="Nhập tên thương hiệu" (keyup)="applyFilter($event)">
-                    <mat-icon matSuffix>search</mat-icon>
+                    <input matInput placeholder="Nhập tên thương hiệu" [formControl]="searchControl">
+                    <button *ngIf="searchControl.value" matSuffix mat-icon-button aria-label="Xóa"
+                        (click)="searchControl.setValue('')">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                    <mat-icon matSuffix *ngIf="!searchControl.value">search</mat-icon>
                 </mat-form-field>
 
                 <div class="filter-actions">
                     <button mat-stroked-button [matMenuTriggerFor]="statusMenu">
                         <mat-icon>visibility</mat-icon>
-                        Trạng thái
+                        Trạng thái: {{ statusFilter === null ? 'Tất cả' :
+                        statusFilter === 'ACTIVE' ? 'Đang hoạt động' : 'Ẩn' }}
                     </button>
                     <mat-menu #statusMenu="matMenu">
-                        <button mat-menu-item>Tất cả</button>
-                        <button mat-menu-item>Đang hoạt động</button>
-                        <button mat-menu-item>Ẩn</button>
-                    </mat-menu>
-
-                    <button mat-stroked-button [matMenuTriggerFor]="originMenu">
-                        <mat-icon>public</mat-icon>
-                        Xuất xứ
-                    </button>
-                    <mat-menu #originMenu="matMenu">
-                        <button mat-menu-item>Tất cả</button>
-                        <button mat-menu-item>Việt Nam</button>
-                        <button mat-menu-item>Mỹ</button>
-                        <button mat-menu-item>Hàn Quốc</button>
-                        <button mat-menu-item>Nhật Bản</button>
-                        <button mat-menu-item>Trung Quốc</button>
-                        <button mat-menu-item>Khác</button>
+                        <button mat-menu-item (click)="applyStatusFilter(null)">Tất cả</button>
+                        <button mat-menu-item (click)="applyStatusFilter('ACTIVE')">Đang hoạt động</button>
+                        <button mat-menu-item (click)="applyStatusFilter('INACTIVE')">Ẩn</button>
                     </mat-menu>
 
                     <button mat-stroked-button [matMenuTriggerFor]="sortMenu">
                         <mat-icon>sort</mat-icon>
-                        Sắp xếp
+                        Sắp xếp: {{ sortBy === 'name' && sortDirection === 'asc' ? 'Tên (A-Z)' :
+                        sortBy === 'name' && sortDirection === 'desc' ? 'Tên (Z-A)' :
+                        sortBy === 'productCount' && sortDirection === 'desc' ? 'Sản phẩm (Nhiều nhất)' :
+                        'Sản phẩm (Ít nhất)' }}
                     </button>
                     <mat-menu #sortMenu="matMenu">
-                        <button mat-menu-item>Tên (A-Z)</button>
-                        <button mat-menu-item>Tên (Z-A)</button>
-                        <button mat-menu-item>Sản phẩm (Nhiều nhất)</button>
-                        <button mat-menu-item>Sản phẩm (Ít nhất)</button>
-                        <button mat-menu-item>Mới nhất</button>
-                        <button mat-menu-item>Cũ nhất</button>
+                        <button mat-menu-item (click)="onSortChange('name_asc')">Tên (A-Z)</button>
+                        <button mat-menu-item (click)="onSortChange('name_desc')">Tên (Z-A)</button>
+                        <button mat-menu-item (click)="onSortChange('productCount_desc')">Sản phẩm (Nhiều nhất)</button>
+                        <button mat-menu-item (click)="onSortChange('productCount_asc')">Sản phẩm (Ít nhất)</button>
                     </mat-menu>
+
+                    <button mat-stroked-button color="warn" *ngIf="searchControl.value || statusFilter !== null"
+                        (click)="clearFilters()">
+                        <mat-icon>filter_alt_off</mat-icon>
+                        Xóa bộ lọc
+                    </button>
                 </div>
             </div>
         </mat-card-content>
@@ -65,7 +63,10 @@
         <!-- Danh sách thương hiệu -->
         <mat-card class="brand-list-card">
             <mat-card-header>
-                <mat-card-title>Danh sách thương hiệu</mat-card-title>
+                <mat-card-title>
+                    Danh sách thương hiệu
+                    <span *ngIf="totalItems > 0">({{ totalItems }})</span>
+                </mat-card-title>
                 <button mat-button color="primary">
                     <mat-icon>file_download</mat-icon>
                     Xuất dữ liệu
@@ -170,12 +171,19 @@
 
                     <!-- Khi không có dữ liệu -->
                     <tr class="mat-row" *matNoDataRow>
-                        <td class="mat-cell" colspan="7">Không tìm thấy dữ liệu thương hiệu</td>
+                        <td class="mat-cell" colspan="7">
+                            <div class="no-data-message">
+                                <mat-icon>search_off</mat-icon>
+                                <p>Không tìm thấy dữ liệu thương hiệu</p>
+                            </div>
+                        </td>
                     </tr>
                 </table>
 
-                <!-- Phân trang -->
-                <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+                <!-- Phân trang - Với thông tin tổng số -->
+                <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+                    [pageIndex]="pageIndex" (page)="onPageChange($event)" showFirstLastButtons aria-label="Chọn trang">
+                </mat-paginator>
             </mat-card-content>
         </mat-card>
 

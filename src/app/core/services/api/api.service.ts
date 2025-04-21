@@ -1,11 +1,12 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import {
   ApiResponse,
   ApiResponseHelper
 } from '../../models/api-response.model';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -15,8 +16,10 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
-  get<T>(endpoint: string): Observable<ApiResponse<T>> {
-    return this.http.get<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`);
+  get<T>(endpoint: string, params?: HttpParams): Observable<ApiResponse<T>> {
+    const options = params ? { params } : {};
+    return this.http.get<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`, options)
+      .pipe(catchError(this.handleError));
   }
 
   post<T>(endpoint: string, data: any): Observable<ApiResponse<T>> {
@@ -27,7 +30,7 @@ export class ApiService {
     return this.http.put<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`, data);
   }
 
-  patch<T>(endpoint: string, data: any): Observable<ApiResponse<T>> {
+  patch<T>(endpoint: string, data: any, options?: any): Observable<ApiResponse<T>> {
     return this.http.patch<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`, data);
   }
 

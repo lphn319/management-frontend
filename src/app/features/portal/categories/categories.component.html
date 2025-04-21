@@ -37,16 +37,19 @@
 
                     <button mat-stroked-button [matMenuTriggerFor]="sortMenu">
                         <mat-icon>sort</mat-icon>
-                        Sắp xếp: {{ sortBy === 'name_asc' ? 'Tên (A-Z)' :
-                        sortBy === 'name_desc' ? 'Tên (Z-A)' :
-                        sortBy === 'products_desc' ? 'Sản phẩm (Nhiều nhất)' :
-                        'Sản phẩm (Ít nhất)' }}
+                        Sắp xếp: {{
+                        sortBy === 'name' && sortDirection === 'asc' ? 'Tên (A-Z)' :
+                        sortBy === 'name' && sortDirection === 'desc' ? 'Tên (Z-A)' :
+                        sortBy === 'productCount' && sortDirection === 'desc' ? 'Sản phẩm (Nhiều nhất)' :
+                        'Sản phẩm (Ít nhất)'
+                        }}
                     </button>
                     <mat-menu #sortMenu="matMenu">
                         <button mat-menu-item (click)="setSortOption('name_asc')">Tên (A-Z)</button>
                         <button mat-menu-item (click)="setSortOption('name_desc')">Tên (Z-A)</button>
-                        <button mat-menu-item (click)="setSortOption('products_desc')">Sản phẩm (Nhiều nhất)</button>
-                        <button mat-menu-item (click)="setSortOption('products_asc')">Sản phẩm (Ít nhất)</button>
+                        <button mat-menu-item (click)="setSortOption('productCount_desc')">Sản phẩm (Nhiều
+                            nhất)</button>
+                        <button mat-menu-item (click)="setSortOption('productCount_asc')">Sản phẩm (Ít nhất)</button>
                     </mat-menu>
 
                     <button mat-stroked-button color="warn" *ngIf="searchControl.value || statusFilter !== 'ALL'"
@@ -69,17 +72,16 @@
     <div *ngIf="errorMessage && !isLoading" class="error-container">
         <mat-icon color="warn">error</mat-icon>
         <p>{{ errorMessage }}</p>
-        <button mat-button color="primary" (click)="loadCategories()">Thử lại</button>
+        <button mat-button color="primary" (click)="loadCategoriesWithPagination()">Thử lại</button>
     </div>
 
     <div class="categories-layout" *ngIf="!isLoading && !errorMessage">
         <!-- Danh sách danh mục -->
         <mat-card class="category-card">
             <mat-card-header>
-                <mat-card-title>Danh sách danh mục
-                    <span *ngIf="filteredCategoriesCount !== totalCategories">({{ filteredCategoriesCount }}/{{
-                        totalCategories }})</span>
-                    <span *ngIf="filteredCategoriesCount === totalCategories">({{ totalCategories }})</span>
+                <mat-card-title>
+                    Danh sách danh mục
+                    <span *ngIf="totalCategories > 0">({{ totalItems }})</span>
                 </mat-card-title>
                 <button mat-button color="primary">
                     <mat-icon>file_download</mat-icon>
@@ -166,8 +168,10 @@
                     <mat-icon>search_off</mat-icon>
                     <p>Không tìm thấy danh mục nào</p>
                 </div>
-                <!-- Phân trang -->
-                <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" showFirstLastButtons aria-label="Select page">
+
+                <!-- Phân trang - Đã nâng cấp với thông tin tổng số -->
+                <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+                    [pageIndex]="pageIndex" (page)="onPageChange($event)" showFirstLastButtons aria-label="Chọn trang">
                 </mat-paginator>
             </mat-card-content>
         </mat-card>

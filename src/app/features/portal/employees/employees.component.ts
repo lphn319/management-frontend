@@ -13,42 +13,18 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
+import { FormControl } from '@angular/forms';
+import { finalize, catchError, of } from 'rxjs';
+import { EmployeeService } from './services/employee.service';
+import { DepartmentService } from '../departments/services/department.service';
+import { RoleService } from '../roles/services/role.service';
 import { EmployeeDialogComponent } from './employee-dialog/employee-dialog.component';
-
-// Interfaces
-interface Department {
-  id: number;
-  name: string;
-}
-
-interface Role {
-  id: number;
-  name: string;
-  permissions: string[];
-}
-
-interface Employee {
-  id: number;
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  department: Department;
-  role: Role;
-  salary: number;
-  hireDate: Date;
-  status: 'active' | 'inactive' | 'on_leave';
-  lastActive: Date;
-  avatar?: string;
-}
-
-interface EmployeeStats {
-  total: number;
-  active: number;
-  inactive: number;
-  onLeave: number;
-  departments: { [key: string]: number };
-}
+import { Role } from '../roles/models/role.model';
+import { Employee, EmployeeStats, EmployeeRequest } from './models/employee.model';
+import { Department } from '../departments/models/department.model';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { NgIf } from '@angular/common';
+import { MatDivider } from '@angular/material/list';
 
 @Component({
   selector: 'app-employees',
@@ -63,14 +39,21 @@ interface EmployeeStats {
     MatInputModule,
     MatMenuModule,
     MatPaginatorModule,
-    MatTableModule
+    MatTableModule,
+    MatProgressSpinner,
+    NgIf,
+    MatDivider
   ],
   templateUrl: './employees.component.html',
   styleUrl: './employees.component.scss'
 })
 export class EmployeesComponent implements OnInit {
   displayedColumns: string[] = ['avatar', 'info', 'department', 'role', 'salary', 'status', 'actions'];
+  departmentDisplayedColumns: string[] = ['id', 'name', 'employees', 'actions']; // Thêm cột cho phòng ban
+
   employees = new MatTableDataSource<Employee>();
+  departmentDataSource = new MatTableDataSource<Department>(); // Thêm data source cho phòng ban
+
   employeeStats: EmployeeStats = {
     total: 0,
     active: 0,
@@ -79,47 +62,207 @@ export class EmployeesComponent implements OnInit {
     departments: {}
   };
 
-  departments: Department[] = [
-    { id: 1, name: 'Quản lý' },
-    { id: 2, name: 'Kinh doanh' },
-    { id: 3, name: 'Marketing' },
-    { id: 4, name: 'Kỹ thuật' },
-    { id: 5, name: 'Chăm sóc khách hàng' },
-    { id: 6, name: 'Kế toán' },
-    { id: 7, name: 'Nhân sự' }
-  ];
+  departments: Department[] = [];
+  roles: Role[] = [];
+  isLoading: boolean = true;
+  errorMessage: string | null = null;
 
-  roles: Role[] = [
-    { id: 1, name: 'Giám đốc', permissions: ['all'] },
-    { id: 2, name: 'Quản lý', permissions: ['manage_employees', 'manage_customers', 'manage_orders'] },
-    { id: 3, name: 'Nhân viên kinh doanh', permissions: ['view_customers', 'manage_orders'] },
-    { id: 4, name: 'Nhân viên kỹ thuật', permissions: ['manage_products', 'view_orders'] },
-    { id: 5, name: 'Nhân viên CSKH', permissions: ['view_customers', 'view_orders'] },
-    { id: 6, name: 'Kế toán viên', permissions: ['view_orders', 'manage_payments'] },
-    { id: 7, name: 'Nhân viên nhân sự', permissions: ['view_employees'] }
-  ];
+  searchControl = new FormControl('');
+  statusFilter: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE' = 'ALL';
+  departmentFilter: number | 'ALL' = 'ALL';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
+    private employeeService: EmployeeService,
+    private departmentService: DepartmentService,
+    private roleService: RoleService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
-    this.loadEmployees();
+    // Thay thế loadEmployees bằng loadInitialData để tải tất cả dữ liệu cần thiết
+    this.loadInitialData();
+
+    // Lắng nghe thay đổi tìm kiếm
+    this.searchControl.valueChanges.subscribe(() => {
+      this.applyFilter();
+    });
   }
 
   ngAfterViewInit() {
-    this.employees.paginator = this.paginator;
+    if (this.paginator) {
+      this.employees.paginator = this.paginator;
+    } else {
+      console.warn('Paginator is not available');
+    }
   }
 
-  // Format currency
+  // Tải dữ liệu ban đầu
+  loadInitialData(): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    console.log('Bắt đầu tải dữ liệu ban đầu');
+
+    // Tải danh sách phòng ban
+    this.departmentService.getAll().subscribe({
+      next: (departments) => {
+        console.log('Đã tải phòng ban:', departments);
+        this.departments = departments;
+        this.departmentDataSource.data = departments; // Cập nhật data source cho phòng ban
+
+        // Tải danh sách vai trò
+        this.roleService.getAll().subscribe({
+          next: (roles) => {
+            console.log('Đã tải vai trò:', roles);
+            this.roles = roles;
+
+            // Tải danh sách nhân viên
+            this.loadEmployees();
+          },
+          error: (error) => {
+            this.isLoading = false;
+            this.errorMessage = `Không thể tải danh sách vai trò: ${error.message}`;
+            this.showNotification(this.errorMessage, 'error');
+          }
+        });
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = `Không thể tải danh sách phòng ban: ${error.message}`;
+        this.showNotification(this.errorMessage, 'error');
+      }
+    });
+  }
+
+  // Tải danh sách nhân viên
+  loadEmployees(): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    console.log('Đang tải danh sách nhân viên');
+
+    this.employeeService.getAll()
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          if (this.paginator && !this.employees.paginator) {
+            this.employees.paginator = this.paginator;
+          }
+        }),
+        catchError((error) => {
+          this.errorMessage = `Không thể tải danh sách nhân viên: ${error.message}`;
+          this.showNotification(this.errorMessage, 'error');
+          return of([]);
+        })
+      )
+      .subscribe(employees => {
+        console.log('Đã tải nhân viên:', employees);
+        this.employees.data = employees;
+
+        // Tính toán thống kê từ dữ liệu nhân viên
+        this.calculateStats(employees);
+      });
+
+    // Tải thống kê nhân viên (nếu có API riêng)
+    this.employeeService.getStatistics()
+      .pipe(
+        catchError((error) => {
+          console.error('Error loading employee statistics:', error);
+          return of({
+            total: 0,
+            active: 0,
+            inactive: 0,
+            onLeave: 0,
+            departments: {}
+          });
+        })
+      )
+      .subscribe(stats => {
+        console.log('Đã tải thống kê nhân viên:', stats);
+        this.employeeStats = stats;
+      });
+  }
+
+  // Lấy tên phòng ban từ ID
+  getDepartmentName(id: number | 'ALL'): string {
+    if (id === 'ALL') return 'Tất cả';
+    const department = this.departments.find(d => d.id === id);
+    return department ? department.name : 'Tất cả';
+  }
+  // Tính toán thống kê từ danh sách nhân viên
+  calculateStats(employees: Employee[]): void {
+    this.employeeStats.total = employees.length;
+    this.employeeStats.active = employees.filter(e => e.isActive).length;
+    this.employeeStats.inactive = employees.filter(e => !e.isActive).length;
+
+    // Tính toán số nhân viên theo phòng ban
+    this.employeeStats.departments = {};
+    this.departments.forEach(dept => {
+      this.employeeStats.departments[dept.name] = employees.filter(e => e.departmentName === dept.name).length;
+    });
+
+    console.log('Thống kê phòng ban:', this.employeeStats.departments);
+  }
+
+  // Áp dụng bộ lọc
+  applyFilter(): void {
+    const searchText = (this.searchControl.value || '').trim().toLowerCase();
+
+    this.employees.filterPredicate = (employee: Employee, filter: string) => {
+      // Áp dụng tìm kiếm theo tên, email, số điện thoại
+      const matchFilter = !filter ||
+        employee.name.toLowerCase().includes(filter) ||
+        employee.email.toLowerCase().includes(filter) ||
+        employee.phoneNumber.includes(filter);
+
+      // Áp dụng lọc theo trạng thái
+      const matchStatus = this.statusFilter === 'ALL' ||
+        (this.statusFilter === 'ACTIVE' && employee.isActive) ||
+        (this.statusFilter === 'INACTIVE' && !employee.isActive);
+
+      // Áp dụng lọc theo phòng ban
+      const matchDepartment = this.departmentFilter === 'ALL' ||
+        this.getDepartmentIdByName(employee.departmentName) === this.departmentFilter;
+
+      return matchFilter && matchStatus && matchDepartment;
+    };
+
+    this.employees.filter = searchText;
+
+    if (this.employees.paginator) {
+      this.employees.paginator.firstPage();
+    }
+  }
+
+  // Đặt bộ lọc trạng thái
+  setStatusFilter(status: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE'): void {
+    this.statusFilter = status;
+    this.applyFilter();
+  }
+
+  // Đặt bộ lọc phòng ban
+  setDepartmentFilter(departmentId: number | 'ALL'): void {
+    this.departmentFilter = departmentId;
+    this.applyFilter();
+  }
+
+  // Xóa bộ lọc
+  clearFilters(): void {
+    this.searchControl.setValue('');
+    this.statusFilter = 'ALL';
+    this.departmentFilter = 'ALL';
+    this.applyFilter();
+  }
+
+  // Format tiền tệ
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
   }
 
-  // Get initials from full name
+  // Lấy chữ cái đầu từ tên
   getInitials(name: string): string {
     if (!name) return '';
     return name
@@ -130,7 +273,7 @@ export class EmployeesComponent implements OnInit {
       .toUpperCase();
   }
 
-  // Generate color based on name
+  // Tạo màu avatar dựa trên tên
   getAvatarColor(name: string): string {
     if (!name) return '#2196f3';
     const colors = [
@@ -139,174 +282,25 @@ export class EmployeesComponent implements OnInit {
       '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800',
       '#ff5722', '#795548', '#607d8b'
     ];
+
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
+
     return colors[Math.abs(hash) % colors.length];
   }
 
-  // Get status text
-  getStatusText(status: string): string {
-    switch (status) {
-      case 'active': return 'Đang làm việc';
-      case 'inactive': return 'Đã nghỉ việc';
-      case 'on_leave': return 'Đang nghỉ phép';
-      default: return status;
-    }
+  // Lấy text trạng thái
+  getStatusText(status: boolean): string {
+    return status ? 'Đang làm việc' : 'Đã nghỉ việc';
   }
 
-  // Calculate employee statistics
-  calculateStats(employees: Employee[]): void {
-    this.employeeStats.total = employees.length;
-    this.employeeStats.active = employees.filter(e => e.status === 'active').length;
-    this.employeeStats.inactive = employees.filter(e => e.status === 'inactive').length;
-    this.employeeStats.onLeave = employees.filter(e => e.status === 'on_leave').length;
-
-    // Calculate department stats
-    this.employeeStats.departments = {};
-    this.departments.forEach(dept => {
-      this.employeeStats.departments[dept.name] = employees.filter(e => e.department.id === dept.id).length;
-    });
-  }
-
-  // Load employees data
-  loadEmployees(): void {
-    const mockEmployees: Employee[] = [
-      {
-        id: 1,
-        fullName: 'Nguyễn Văn Quản',
-        email: 'nvquan@azura.com',
-        phone: '0901234567',
-        address: '123 Nguyễn Huệ, Quận 1, TP.HCM',
-        department: this.departments[0], // Quản lý
-        role: this.roles[0], // Giám đốc
-        salary: 35000000,
-        hireDate: new Date('2022-01-15'),
-        status: 'active',
-        lastActive: new Date()
-      },
-      {
-        id: 2,
-        fullName: 'Trần Thị Hương',
-        email: 'tthuong@azura.com',
-        phone: '0912345678',
-        address: '456 Lê Lợi, Quận 3, TP.HCM',
-        department: this.departments[1], // Kinh doanh
-        role: this.roles[1], // Quản lý
-        salary: 25000000,
-        hireDate: new Date('2022-03-22'),
-        status: 'active',
-        lastActive: new Date()
-      },
-      {
-        id: 3,
-        fullName: 'Lê Văn Minh',
-        email: 'lvminh@azura.com',
-        phone: '0923456789',
-        address: '789 Nguyễn Trãi, Quận 5, TP.HCM',
-        department: this.departments[3], // Kỹ thuật
-        role: this.roles[1], // Quản lý
-        salary: 28000000,
-        hireDate: new Date('2022-02-05'),
-        status: 'active',
-        lastActive: new Date()
-      },
-      {
-        id: 4,
-        fullName: 'Phạm Thị Lan',
-        email: 'ptlan@azura.com',
-        phone: '0934567890',
-        address: '101 Cách Mạng Tháng 8, Quận 10, TP.HCM',
-        department: this.departments[2], // Marketing
-        role: this.roles[1], // Quản lý
-        salary: 22000000,
-        hireDate: new Date('2022-05-10'),
-        status: 'active',
-        lastActive: new Date()
-      },
-      {
-        id: 5,
-        fullName: 'Hoàng Văn Đức',
-        email: 'hvduc@azura.com',
-        phone: '0945678901',
-        address: '202 Hai Bà Trưng, Quận 1, TP.HCM',
-        department: this.departments[4], // Chăm sóc khách hàng
-        role: this.roles[4], // Nhân viên CSKH
-        salary: 15000000,
-        hireDate: new Date('2023-02-17'),
-        status: 'active',
-        lastActive: new Date()
-      },
-      {
-        id: 6,
-        fullName: 'Vũ Thị Mai',
-        email: 'vtmai@azura.com',
-        phone: '0956789012',
-        address: '303 Lý Thường Kiệt, Quận 11, TP.HCM',
-        department: this.departments[1], // Kinh doanh
-        role: this.roles[2], // Nhân viên kinh doanh
-        salary: 18000000,
-        hireDate: new Date('2023-01-30'),
-        status: 'on_leave',
-        lastActive: new Date('2025-04-10')
-      },
-      {
-        id: 7,
-        fullName: 'Đặng Văn Hiếu',
-        email: 'dvhieu@azura.com',
-        phone: '0967890123',
-        address: '404 Võ Văn Tần, Quận 3, TP.HCM',
-        department: this.departments[3], // Kỹ thuật
-        role: this.roles[3], // Nhân viên kỹ thuật
-        salary: 20000000,
-        hireDate: new Date('2022-11-12'),
-        status: 'active',
-        lastActive: new Date()
-      },
-      {
-        id: 8,
-        fullName: 'Mai Thị Hà',
-        email: 'mtha@azura.com',
-        phone: '0978901234',
-        address: '505 Điện Biên Phủ, Bình Thạnh, TP.HCM',
-        department: this.departments[5], // Kế toán
-        role: this.roles[5], // Kế toán viên
-        salary: 17000000,
-        hireDate: new Date('2023-04-25'),
-        status: 'inactive',
-        lastActive: new Date('2025-02-25')
-      },
-      {
-        id: 9,
-        fullName: 'Phan Văn Tuấn',
-        email: 'pvtuan@azura.com',
-        phone: '0989012345',
-        address: '606 Nam Kỳ Khởi Nghĩa, Quận 3, TP.HCM',
-        department: this.departments[3], // Kỹ thuật
-        role: this.roles[3], // Nhân viên kỹ thuật
-        salary: 19000000,
-        hireDate: new Date('2022-09-18'),
-        status: 'active',
-        lastActive: new Date()
-      },
-      {
-        id: 10,
-        fullName: 'Trương Thị Ngọc',
-        email: 'ttngoc@azura.com',
-        phone: '0990123456',
-        address: '707 Nguyễn Đình Chiểu, Quận 3, TP.HCM',
-        department: this.departments[6], // Nhân sự
-        role: this.roles[6], // Nhân viên nhân sự
-        salary: 16000000,
-        hireDate: new Date('2023-06-02'),
-        status: 'active',
-        lastActive: new Date()
-      }
-    ];
-
-    this.employees.data = mockEmployees;
-    this.calculateStats(mockEmployees);
+  // Lấy ID phòng ban từ tên
+  getDepartmentIdByName(name: string): number | null {
+    if (!name) return null;
+    const department = this.departments.find(d => d.name === name);
+    return department ? department.id : null;
   }
 
   // Mở dialog thêm/sửa nhân viên
@@ -322,11 +316,61 @@ export class EmployeesComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.showNotification(
-          employee ? 'Cập nhật nhân viên thành công' : 'Thêm nhân viên thành công',
-          'success'
-        );
-        this.loadEmployees(); // Refresh dữ liệu
+        if (employee) {
+          // Cập nhật nhân viên
+          const employeeRequest: EmployeeRequest = {
+            name: result.name,
+            email: result.email,
+            phoneNumber: result.phoneNumber,
+            password: result.password, // Có thể null nếu không thay đổi
+            dateOfBirth: result.dateOfBirth,
+            gender: result.gender,
+            departmentId: result.departmentId,
+            roleId: result.roleId
+          };
+
+          this.employeeService.update(employee.id, employeeRequest)
+            .pipe(
+              catchError(error => {
+                console.error('Lỗi khi cập nhật nhân viên:', error);
+                this.showNotification('Không thể cập nhật nhân viên', 'error');
+                return of(null);
+              })
+            )
+            .subscribe(updatedEmployee => {
+              if (updatedEmployee) {
+                this.showNotification('Cập nhật nhân viên thành công', 'success');
+                this.loadEmployees();
+              }
+            });
+        } else {
+          // Thêm nhân viên mới
+          const employeeRequest: EmployeeRequest = {
+            name: result.name,
+            email: result.email,
+            phoneNumber: result.phoneNumber,
+            password: result.password,
+            dateOfBirth: result.dateOfBirth,
+            gender: result.gender,
+            departmentId: result.departmentId,
+            roleId: result.roleId
+          };
+
+          this.employeeService.create(employeeRequest)
+            .pipe(
+              catchError(error => {
+                console.error('Lỗi khi thêm nhân viên:', error);
+                this.showNotification('Không thể thêm nhân viên', 'error');
+                return of(null);
+              })
+            )
+            .subscribe(newEmployee => {
+              if (newEmployee) {
+                this.showNotification('Thêm nhân viên thành công', 'success');
+                this.loadEmployees();
+              }
+            });
+        }
       }
     });
   }
@@ -348,62 +392,45 @@ export class EmployeesComponent implements OnInit {
   }
 
   // Cập nhật trạng thái nhân viên
-  updateStatus(id: number, status: 'active' | 'inactive' | 'on_leave'): void {
-    // Trong thực tế, sẽ gọi API để cập nhật
-    const updatedEmployees = this.employees.data.map(employee => {
-      if (employee.id === id) {
-        return {
-          ...employee,
-          status: status,
-          lastActive: status === 'active' ? new Date() : employee.lastActive
-        };
-      }
-      return employee;
-    });
-
-    this.employees.data = updatedEmployees;
-    this.calculateStats(updatedEmployees);
-
-    let statusText = this.getStatusText(status);
-    this.showNotification(`Nhân viên đã được cập nhật trạng thái: ${statusText}`, 'success');
-  }
-
-  // Xem lịch sử hoạt động của nhân viên
-  viewEmployeeHistory(id: number): void {
-    // Trong thực tế, sẽ mở dialog hiển thị lịch sử hoạt động
-    this.showNotification('Chức năng đang được phát triển', 'info');
+  updateStatus(id: number, isActive: boolean): void {
+    this.employeeService.updateStatus(id, isActive)
+      .pipe(
+        catchError(error => {
+          console.error('Lỗi khi cập nhật trạng thái nhân viên:', error);
+          this.showNotification('Không thể cập nhật trạng thái nhân viên', 'error');
+          return of(null);
+        })
+      )
+      .subscribe(() => {
+        const statusText = isActive ? 'đang làm việc' : 'đã nghỉ việc';
+        this.showNotification(`Nhân viên đã được cập nhật trạng thái: ${statusText}`, 'success');
+        this.loadEmployees();
+      });
   }
 
   // Xóa nhân viên
   deleteEmployee(id: number): void {
-    // Trong thực tế, sẽ gọi API để xóa
     if (confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) {
+      // Kiểm tra vai trò của nhân viên
       const employee = this.employees.data.find(e => e.id === id);
-
-      // Kiểm tra xem có phải giám đốc hoặc quản lý không
-      if (employee && (employee.role.id === 1 || employee.role.id === 2)) {
-        this.showNotification(
-          'Không thể xóa nhân viên có vị trí quản lý cấp cao',
-          'error'
-        );
+      if (employee && employee.roleName === 'ADMIN') {
+        this.showNotification('Không thể xóa nhân viên có vai trò Admin', 'error');
         return;
       }
 
-      // Filter out the deleted employee
-      const updatedEmployees = this.employees.data.filter(employee => employee.id !== id);
-      this.employees.data = updatedEmployees;
-      this.calculateStats(updatedEmployees);
-
-      this.showNotification('Xóa nhân viên thành công', 'success');
+      this.employeeService.delete(id)
+        .pipe(
+          catchError(error => {
+            console.error('Lỗi khi xóa nhân viên:', error);
+            this.showNotification('Không thể xóa nhân viên', 'error');
+            return of(null);
+          })
+        )
+        .subscribe(() => {
+          this.showNotification('Xóa nhân viên thành công', 'success');
+          this.loadEmployees();
+        });
     }
-  }
-
-  // Hiển thị thông báo
-  showNotification(message: string, type: 'success' | 'error' | 'info'): void {
-    this.snackBar.open(message, 'Đóng', {
-      duration: 3000,
-      panelClass: [`${type}-snackbar`, 'azura-snackbar']
-    });
   }
 
   // Xuất dữ liệu nhân viên
@@ -413,5 +440,13 @@ export class EmployeesComponent implements OnInit {
     setTimeout(() => {
       this.showNotification('Xuất dữ liệu thành công', 'success');
     }, 1500);
+  }
+
+  // Hiển thị thông báo
+  showNotification(message: string, type: 'success' | 'error' | 'info'): void {
+    this.snackBar.open(message, 'Đóng', {
+      duration: 3000,
+      panelClass: [`${type}-snackbar`, 'azura-snackbar']
+    });
   }
 }

@@ -4,6 +4,8 @@ import { map } from 'rxjs/operators';
 import { Brand } from '../models/brand.model';
 import { ApiService } from '../../../../core/services/api/api.service';
 import { BaseService } from '../../../../core/services/base/base.service';
+import { Page } from '../../../../core/models/page.model';
+import { HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +33,32 @@ export class BrandService extends BaseService<Brand> {
 
   getStatistics(): Observable<any> {
     return this.apiService.get<any>(`${this.endpoint}/statistics`)
+      .pipe(
+        map(response => response.data)
+      );
+  }
+
+  getBrandsPaginated(
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'name',
+    sortDirection: string = 'asc',
+    status?: string
+  ): Observable<Page<Brand>> {
+    // Tạo tham số query
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('sortDirection', sortDirection);
+
+    // Thêm tham số status nếu có
+    if (status) {
+      params = params.set('status', status);
+    }
+
+    // Gọi API với phân trang
+    return this.apiService.get<Page<Brand>>(`${this.endpoint}/pagination`, params)
       .pipe(
         map(response => response.data)
       );

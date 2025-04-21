@@ -20,7 +20,10 @@ import { finalize, catchError } from 'rxjs';
 import { BrandRequest } from './models/brand.model';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient } from '@angular/common/http';
-import { ApiResponse } from '../../../core/models/api-response.model';
+import { FormControl } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Page } from '../../../core/models/page.model';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-brands',
@@ -45,11 +48,29 @@ export class BrandsComponent implements OnInit {
   displayedColumns: string[] = ['logo', 'name', 'origin', 'website', 'productCount', 'status', 'actions'];
   brands = new MatTableDataSource<Brand>();
   featuredBrands: Brand[] = [];
+
+  // Thống kê thương hiệu
   totalBrands: number = 0;
   activeBrands: number = 0;
   inactiveBrands: number = 0;
+
+  // Biến trạng thái tải dữ liệu
   isLoading: boolean = false;
   defaultImagePath: string = 'assets/images/placeholder.jpg';
+
+  // Biến trạng thái tìm kiếm
+  searchControl = new FormControl('');
+  statusFilter: string | null = null;
+
+  // Biến trạng thái phân trang
+  pageSizeOptions: number[] = [5, 10, 25, 50];
+  pageSize: number = 10;
+  pageIndex: number = 0;
+  totalItems: number = 0;
+
+  // Sắp xếp thương hiệu
+  sortBy: string = 'name';
+  sortDirection: string = 'asc';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -61,19 +82,43 @@ export class BrandsComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.loadBrands();
+    // Theo dõi thay đổi tìm kiếm với debounce
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.resetPagination();
+      this.loadBrandsWithPagination();
+    });
+
+    // Tải dữ liệu ban đầu
+    this.loadBrandsWithPagination();
     this.loadStatistics();
     this.loadFeaturedBrands();
   }
 
   ngAfterViewInit() {
-    this.brands.paginator = this.paginator;
+    // Nếu có paginator, gắn sự kiện page
+    if (this.paginator) {
+      this.paginator.page.subscribe((event: PageEvent) => {
+        this.pageIndex = event.pageIndex;
+        this.pageSize = event.pageSize;
+        this.loadBrandsWithPagination();
+      });
+    }
   }
 
-  // Tải danh sách thương hiệu từ API
-  loadBrands(): void {
+  // Tải danh sách thương hiệu với phân trang
+  loadBrandsWithPagination(): void {
     this.isLoading = true;
-    this.brandService.getAll()
+
+    this.brandService.getBrandsPaginated(
+      this.pageIndex,
+      this.pageSize,
+      this.sortBy,
+      this.sortDirection,
+      this.statusFilter || undefined
+    )
       .pipe(
         finalize(() => this.isLoading = false),
         catchError(error => {
@@ -82,18 +127,36 @@ export class BrandsComponent implements OnInit {
           return [];
         })
       )
-      .subscribe(data => {
-        if (Array.isArray(data)) {
-          this.brands.data = data;
-          console.log('Loaded brands:', data);
+      .subscribe((page: Page<Brand>) => {
+        if (page) {
+          // Cập nhật dữ liệu bảng
+          this.brands.data = page.content;
+          // Cập nhật thông tin phân trang
+          this.totalItems = page.totalElements;
+
+          console.log('Loaded paginated brands:', {
+            content: page.content,
+            pageIndex: page.number,
+            pageSize: page.size,
+            totalItems: page.totalElements,
+            totalPages: page.totalPages
+          });
         } else {
-          console.error('Dữ liệu không phải là mảng:', data);
-          this.showNotification('Định dạng dữ liệu không đúng', 'error');
+          console.error('Không nhận được dữ liệu phân trang hợp lệ');
+          this.showNotification('Lỗi khi nhận dữ liệu từ server', 'error');
         }
       });
   }
 
-  // Tải thống kê từ API
+  // Reset về trang đầu tiên
+  resetPagination(): void {
+    this.pageIndex = 0;
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+  }
+
+  // Tải dữ liệu thống kê
   loadStatistics(): void {
     this.brandService.getStatistics()
       .pipe(
@@ -107,14 +170,11 @@ export class BrandsComponent implements OnInit {
           this.totalBrands = data.totalBrands || 0;
           this.activeBrands = data.activeBrands || 0;
           this.inactiveBrands = data.inactiveBrands || 0;
-          console.log('Loaded statistics:', data);
-        } else {
-          console.error('Không có dữ liệu thống kê:', data);
         }
       });
   }
 
-  // Tải thương hiệu nổi bật từ API
+  // Tải thương hiệu nổi bật
   loadFeaturedBrands(): void {
     this.brandService.getFeaturedBrands(5)
       .pipe(
@@ -126,21 +186,54 @@ export class BrandsComponent implements OnInit {
       .subscribe(data => {
         if (Array.isArray(data)) {
           this.featuredBrands = data;
-          console.log('Loaded featured brands:', data);
-        } else {
-          console.error('Dữ liệu thương hiệu nổi bật không phải là mảng:', data);
         }
       });
   }
 
-  // Debug API để kiểm tra trực tiếp phản hồi
-  debugApiCall(): void {
-    console.log('Calling API directly...');
-    this.http.get<ApiResponse<Brand[]>>('http://localhost:8085/api/v1/brands')
-      .subscribe({
-        next: (response) => console.log('Raw API response:', response),
-        error: (error) => console.error('Direct API error:', error)
-      });
+  // Xử lý thay đổi trang
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadBrandsWithPagination();
+  }
+
+  // Xử lý thay đổi sắp xếp
+  onSortChange(sortOption: string): void {
+    // Format: 'field_direction'
+    const [field, direction] = sortOption.split('_');
+    this.sortBy = field;
+    this.sortDirection = direction;
+    this.resetPagination();
+    this.loadBrandsWithPagination();
+  }
+
+  // Xử lý thay đổi trạng thái lọc
+  applyStatusFilter(status: string | null): void {
+    this.statusFilter = status;
+    this.resetPagination();
+    this.loadBrandsWithPagination();
+  }
+
+  // Xóa tất cả bộ lọc
+  clearFilters(): void {
+    this.searchControl.setValue('');
+    this.statusFilter = null;
+    this.sortBy = 'name';
+    this.sortDirection = 'asc';
+    this.resetPagination();
+    this.loadBrandsWithPagination();
+  }
+
+  // Áp dụng bộ lọc tìm kiếm
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+
+    // Trong trường hợp phân trang ở server side, cần gọi API
+    // với tham số tìm kiếm thay vì lọc trên client
+    // this.brands.filter = filterValue.trim().toLowerCase();
+
+    this.resetPagination();
+    this.loadBrandsWithPagination();
   }
 
   // Mở dialog thêm/sửa thương hiệu
@@ -175,7 +268,7 @@ export class BrandsComponent implements OnInit {
             )
             .subscribe(() => {
               this.showNotification('Cập nhật thương hiệu thành công', 'success');
-              this.loadBrands();
+              this.loadBrandsWithPagination();
               this.loadStatistics();
               this.loadFeaturedBrands();
             });
@@ -200,7 +293,7 @@ export class BrandsComponent implements OnInit {
             )
             .subscribe(() => {
               this.showNotification('Thêm thương hiệu thành công', 'success');
-              this.loadBrands();
+              this.loadBrandsWithPagination();
               this.loadStatistics();
             });
         }
@@ -208,7 +301,7 @@ export class BrandsComponent implements OnInit {
     });
   }
 
-  // Cập nhật trạng thái thương hiệu
+  // Cập nhật trạng thái
   updateStatus(id: number, status: 'ACTIVE' | 'INACTIVE'): void {
     this.brandService.updateStatus(id, status)
       .pipe(
@@ -221,7 +314,7 @@ export class BrandsComponent implements OnInit {
       .subscribe(() => {
         const statusText = status === 'ACTIVE' ? 'hiện' : 'ẩn';
         this.showNotification(`Thương hiệu đã được ${statusText}`, 'success');
-        this.loadBrands();
+        this.loadBrandsWithPagination();
         this.loadStatistics();
         this.loadFeaturedBrands();
       });
@@ -250,7 +343,7 @@ export class BrandsComponent implements OnInit {
         )
         .subscribe(() => {
           this.showNotification('Xóa thương hiệu thành công', 'success');
-          this.loadBrands();
+          this.loadBrandsWithPagination();
           this.loadStatistics();
           this.loadFeaturedBrands();
         });
@@ -261,19 +354,6 @@ export class BrandsComponent implements OnInit {
   viewBrandProducts(id: number): void {
     console.log(`Xem sản phẩm của thương hiệu ID: ${id}`);
     this.showNotification('Chuyển hướng đến trang sản phẩm', 'info');
-    // Ví dụ: this.router.navigate(['/products'], { queryParams: { brandId: id } });
-  }
-
-  // Tìm kiếm thương hiệu
-  applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.brands.filter = filterValue.trim().toLowerCase();
-
-    if (this.brands.paginator) {
-      this.brands.paginator.firstPage();
-    }
-
-
   }
 
   // Hiển thị thông báo

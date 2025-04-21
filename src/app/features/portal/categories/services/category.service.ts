@@ -4,6 +4,8 @@ import { BaseService } from '../../../../core/services/base/base.service';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { Category } from '../models/category.model';
+import { Page } from '../../../../core/models/page.model';
+import { HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -69,6 +71,36 @@ export class CategoryService extends BaseService<Category> {
         });
       })
     );
+  }
+
+  getCategoriesPaginated(
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'name',
+    sortDirection: string = 'asc',
+    status?: string
+  ): Observable<Page<Category>> {
+    // Tạo tham số query
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('sortDirection', sortDirection);
+
+    // Thêm tham số status nếu có
+    if (status) {
+      params = params.set('status', status);
+    }
+
+    // Gọi API với phân trang
+    return this.apiService.get<Page<Category>>(`${this.endpoint}/pagination`, params)
+      .pipe(
+        map(response => response.data),
+        catchError(error => {
+          console.error('Error fetching paginated categories:', error);
+          return throwError(() => new Error(`Failed to fetch categories: ${error.message || 'Unknown error'}`));
+        })
+      );
   }
 
   // getStatistics(): Observable<any> {

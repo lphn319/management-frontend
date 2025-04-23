@@ -8,13 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
-import { Product } from '../models/product';
-
-export interface DialogData {
-  product: Product | null;
-  brands: { id: number; name: string }[];
-  categories: { id: number; name: string }[];
-}
+import { Product, DialogData } from '../models/product';
 
 @Component({
   selector: 'app-product-dialog',
@@ -37,6 +31,10 @@ export interface DialogData {
 export class ProductDialogComponent implements OnInit {
   productForm!: FormGroup;
   isEditMode: boolean = false;
+  previewImage: string | null = null;
+  formSubmitted = false;
+  isUploading = false;
+  uploadProgress = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -47,6 +45,19 @@ export class ProductDialogComponent implements OnInit {
   ngOnInit(): void {
     this.isEditMode = !!this.data.product;
     this.initForm();
+
+    if (this.data.product?.imageUrl) {
+      this.previewImage = this.data.product.imageUrl;
+    }
+
+    // Theo dõi sự thay đổi URL hình ảnh
+    this.productForm.get('imageUrl')?.valueChanges.subscribe(url => {
+      if (url && url.trim() !== '') {
+        this.previewImage = url;
+      } else {
+        this.previewImage = null;
+      }
+    });
   }
 
   initForm(): void {

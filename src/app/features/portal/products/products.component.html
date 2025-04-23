@@ -18,12 +18,19 @@
     <!-- Bộ lọc và tìm kiếm -->
     <mat-card class="filter-card">
         <mat-card-content>
-            <div class="filter-container">
+            <!-- Loading spinner cho master data -->
+            <div *ngIf="isLoadingMaster" class="loading-overlay">
+                <mat-spinner diameter="30"></mat-spinner>
+                <span class="loading-text">Đang tải dữ liệu...</span>
+            </div>
+
+            <div class="filter-container" [class.disabled]="isLoadingMaster">
                 <mat-form-field appearance="outline" class="search-field">
                     <mat-label>Tìm kiếm sản phẩm</mat-label>
-                    <input matInput [(ngModel)]="searchTerm" (keyup)="applyFilter()" placeholder="Nhập tên sản phẩm">
+                    <input matInput [(ngModel)]="searchTerm" (keyup.enter)="loadProducts()"
+                        placeholder="Nhập tên sản phẩm">
                     <button *ngIf="searchTerm" matSuffix mat-icon-button aria-label="Clear"
-                        (click)="searchTerm=''; applyFilter()">
+                        (click)="searchTerm=''; loadProducts()">
                         <mat-icon>close</mat-icon>
                     </button>
                     <mat-icon matSuffix>search</mat-icon>
@@ -35,9 +42,9 @@
                         Thương hiệu
                     </button>
                     <mat-menu #brandMenu="matMenu">
-                        <button mat-menu-item (click)="filterBrand = null; applyFilter()">Tất cả</button>
+                        <button mat-menu-item (click)="filterBrand = null; loadProducts()">Tất cả</button>
                         <button mat-menu-item *ngFor="let brand of brands"
-                            (click)="filterBrand = brand.id; applyFilter()">{{ brand.name }}</button>
+                            (click)="filterBrand = brand.id; loadProducts()">{{ brand.name }}</button>
                     </mat-menu>
 
                     <button mat-stroked-button [matMenuTriggerFor]="categoryMenu">
@@ -45,9 +52,9 @@
                         Danh mục
                     </button>
                     <mat-menu #categoryMenu="matMenu">
-                        <button mat-menu-item (click)="filterCategory = null; applyFilter()">Tất cả</button>
+                        <button mat-menu-item (click)="filterCategory = null; loadProducts()">Tất cả</button>
                         <button mat-menu-item *ngFor="let category of categories"
-                            (click)="filterCategory = category.id; applyFilter()">{{ category.name }}</button>
+                            (click)="filterCategory = category.id; loadProducts()">{{ category.name }}</button>
                     </mat-menu>
 
                     <button mat-stroked-button [matMenuTriggerFor]="stockMenu">
@@ -55,10 +62,10 @@
                         Tồn kho
                     </button>
                     <mat-menu #stockMenu="matMenu">
-                        <button mat-menu-item (click)="filterStock = null; applyFilter()">Tất cả</button>
-                        <button mat-menu-item (click)="filterStock = 'inStock'; applyFilter()">Còn hàng</button>
-                        <button mat-menu-item (click)="filterStock = 'lowStock'; applyFilter()">Sắp hết</button>
-                        <button mat-menu-item (click)="filterStock = 'outOfStock'; applyFilter()">Hết hàng</button>
+                        <button mat-menu-item (click)="filterStock = null; loadProducts()">Tất cả</button>
+                        <button mat-menu-item (click)="filterStock = 'inStock'; loadProducts()">Còn hàng</button>
+                        <button mat-menu-item (click)="filterStock = 'lowStock'; loadProducts()">Sắp hết</button>
+                        <button mat-menu-item (click)="filterStock = 'outOfStock'; loadProducts()">Hết hàng</button>
                     </mat-menu>
 
                     <button mat-stroked-button color="warn" (click)="resetFilters()"
@@ -95,7 +102,8 @@
                 </button>
             </div>
 
-            <table mat-table [dataSource]="dataSource" class="product-table" matSort *ngIf="dataSource.data.length > 0">
+            <table mat-table [dataSource]="dataSource" class="product-table" matSort
+                (matSortChange)="onSortChange($event)" *ngIf="dataSource.data.length > 0">
                 <!-- Cột hình ảnh -->
                 <ng-container matColumnDef="imageUrl">
                     <th mat-header-cell *matHeaderCellDef>Hình ảnh</th>
@@ -178,7 +186,9 @@
             </table>
 
             <!-- Phân trang -->
-            <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons *ngIf="dataSource.data.length > 0">
+            <mat-paginator [pageSizeOptions]="[5, 10, 20, 50]" [pageSize]="pageSize" [pageIndex]="pageIndex"
+                [length]="totalItems" (page)="onPageChange($event)" showFirstLastButtons
+                *ngIf="dataSource.data.length > 0">
             </mat-paginator>
         </mat-card-content>
     </mat-card>

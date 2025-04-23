@@ -66,7 +66,7 @@ export const routes: Routes = [
     },
 
     {
-        path: 'dev-logout',
+        path: 'logout',
         component: HomeComponent,  // Use any component
         resolve: {
             logout: () => {

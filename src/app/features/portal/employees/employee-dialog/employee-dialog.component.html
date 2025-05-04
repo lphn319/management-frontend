@@ -129,9 +129,9 @@
                     <!-- Trạng thái -->
                     <mat-form-field appearance="outline">
                         <mat-label>Trạng thái</mat-label>
-                        <mat-select formControlName="isActive" [disabled]="viewOnly">
-                            <mat-option [value]="true">Đang làm việc</mat-option>
-                            <mat-option [value]="false">Đã nghỉ việc</mat-option>
+                        <mat-select formControlName="status" [disabled]="viewOnly">
+                            <mat-option value="ACTIVE">Đang làm việc</mat-option>
+                            <mat-option value="INACTIVE">Đã nghỉ việc</mat-option>
                         </mat-select>
                     </mat-form-field>
                 </div>

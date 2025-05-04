@@ -8,11 +8,14 @@ export interface Employee {
     phoneNumber: string;
     dateOfBirth: Date;
     gender: string;
-    isActive: boolean;
+    status: 'ACTIVE' | 'INACTIVE';
     roleName: string;
     departmentName: string;
     createdAt: Date;
     updatedAt: Date;
+
+    // Helper method for backward compatibility
+    isActive?: boolean;
 }
 
 export interface EmployeeRequest {
@@ -24,6 +27,7 @@ export interface EmployeeRequest {
     gender: string;
     departmentId: number;
     roleId: number;
+    status?: 'ACTIVE' | 'INACTIVE'; // Thêm trường status
 }
 
 export interface EmployeeStats {

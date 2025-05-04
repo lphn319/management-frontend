@@ -72,24 +72,23 @@ export class EmployeeService extends BaseService<Employee> {
       );
   }
 
-  // Cập nhật trạng thái nhân viên - Đã sửa để sử dụng query parameter
-  updateStatus(id: number, isActive: boolean): Observable<any> {
-    // Sử dụng HttpParams thay vì gửi trong body
-    const params = new HttpParams().set('isActive', isActive.toString());
-    const url = `${this.endpoint}/${id}/status`;
+  // Cập nhật trạng thái nhân viên
+  updateStatus(id: number, status: 'ACTIVE' | 'INACTIVE'): Observable<any> {
+    // Cách 1: URL encoding thủ công
+    const url = `${this.endpoint}/${id}/status?status=${encodeURIComponent(status)}`;
 
-    console.log(`Cập nhật trạng thái nhân viên ID ${id} thành ${isActive ? 'active' : 'inactive'}`);
-    console.log(`URL: ${url}, Params: isActive=${isActive}`);
+    console.log('Manual URL:', url);
 
-    return this.apiService.patch<any>(url, {}, { params })
+    return this.apiService.patch<any>(url, {})
       .pipe(
-        tap(response => console.log('Kết quả cập nhật trạng thái:', response)),
+        tap(response => console.log('Response:', response)),
         catchError(error => {
-          console.error('Lỗi khi cập nhật trạng thái nhân viên:', error);
-          return throwError(() => new Error(`Không thể cập nhật trạng thái nhân viên: ${error.message || 'Lỗi không xác định'}`));
+          console.error('Error:', error);
+          return throwError(() => error);
         })
       );
   }
+
 
   // Lấy thống kê nhân viên
   getStatistics(): Observable<EmployeeStats> {

@@ -1,5 +1,3 @@
-// src/app/features/admin/employees/employee-dialog/employee-dialog.component.ts
-
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -87,7 +85,7 @@ export class EmployeeDialogComponent implements OnInit {
       gender: [this.data.employee?.gender || 'MALE', Validators.required],
       departmentId: [this.getDepartmentIdByName(this.data.employee?.departmentName) || '', Validators.required],
       roleId: [this.getRoleIdByName(this.data.employee?.roleName) || '', Validators.required],
-      isActive: [this.data.employee?.isActive ?? true]
+      status: [this.data.employee?.status || 'ACTIVE']
     });
 
     // Nếu ở chế độ chỉ xem thì disable form

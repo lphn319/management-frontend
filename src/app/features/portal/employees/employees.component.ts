@@ -49,10 +49,10 @@ import { MatDivider } from '@angular/material/list';
 })
 export class EmployeesComponent implements OnInit {
   displayedColumns: string[] = ['avatar', 'info', 'department', 'role', 'salary', 'status', 'actions'];
-  departmentDisplayedColumns: string[] = ['id', 'name', 'employees', 'actions']; // Thêm cột cho phòng ban
+  departmentDisplayedColumns: string[] = ['id', 'name', 'employees', 'actions'];
 
   employees = new MatTableDataSource<Employee>();
-  departmentDataSource = new MatTableDataSource<Department>(); // Thêm data source cho phòng ban
+  departmentDataSource = new MatTableDataSource<Department>();
 
   employeeStats: EmployeeStats = {
     total: 0,
@@ -68,7 +68,7 @@ export class EmployeesComponent implements OnInit {
   errorMessage: string | null = null;
 
   searchControl = new FormControl('');
-  statusFilter: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE' = 'ALL';
+  statusFilter: 'ALL' | 'ACTIVE' | 'INACTIVE' = 'ALL';
   departmentFilter: number | 'ALL' = 'ALL';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -82,10 +82,8 @@ export class EmployeesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Thay thế loadEmployees bằng loadInitialData để tải tất cả dữ liệu cần thiết
     this.loadInitialData();
 
-    // Lắng nghe thay đổi tìm kiếm
     this.searchControl.valueChanges.subscribe(() => {
       this.applyFilter();
     });
@@ -195,8 +193,8 @@ export class EmployeesComponent implements OnInit {
   // Tính toán thống kê từ danh sách nhân viên
   calculateStats(employees: Employee[]): void {
     this.employeeStats.total = employees.length;
-    this.employeeStats.active = employees.filter(e => e.isActive).length;
-    this.employeeStats.inactive = employees.filter(e => !e.isActive).length;
+    this.employeeStats.active = employees.filter(e => e.status === 'ACTIVE').length;
+    this.employeeStats.inactive = employees.filter(e => e.status === 'INACTIVE').length;
 
     // Tính toán số nhân viên theo phòng ban
     this.employeeStats.departments = {};
@@ -220,8 +218,8 @@ export class EmployeesComponent implements OnInit {
 
       // Áp dụng lọc theo trạng thái
       const matchStatus = this.statusFilter === 'ALL' ||
-        (this.statusFilter === 'ACTIVE' && employee.isActive) ||
-        (this.statusFilter === 'INACTIVE' && !employee.isActive);
+        (this.statusFilter === 'ACTIVE' && employee.status === 'ACTIVE') ||
+        (this.statusFilter === 'INACTIVE' && employee.status === 'INACTIVE');
 
       // Áp dụng lọc theo phòng ban
       const matchDepartment = this.departmentFilter === 'ALL' ||
@@ -238,7 +236,7 @@ export class EmployeesComponent implements OnInit {
   }
 
   // Đặt bộ lọc trạng thái
-  setStatusFilter(status: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE'): void {
+  setStatusFilter(status: 'ALL' | 'ACTIVE' | 'INACTIVE'): void {
     this.statusFilter = status;
     this.applyFilter();
   }
@@ -292,8 +290,8 @@ export class EmployeesComponent implements OnInit {
   }
 
   // Lấy text trạng thái
-  getStatusText(status: boolean): string {
-    return status ? 'Đang làm việc' : 'Đã nghỉ việc';
+  getStatusText(status: string): string {
+    return status === 'ACTIVE' ? 'Đang làm việc' : 'Đã nghỉ việc';
   }
 
   // Lấy ID phòng ban từ tên
@@ -317,16 +315,17 @@ export class EmployeesComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         if (employee) {
-          // Cập nhật nhân viên
+          // Cập nhật nhân viên - bao gồm status
           const employeeRequest: EmployeeRequest = {
             name: result.name,
             email: result.email,
             phoneNumber: result.phoneNumber,
-            password: result.password, // Có thể null nếu không thay đổi
+            password: result.password,
             dateOfBirth: result.dateOfBirth,
             gender: result.gender,
             departmentId: result.departmentId,
-            roleId: result.roleId
+            roleId: result.roleId,
+            status: result.status
           };
 
           this.employeeService.update(employee.id, employeeRequest)
@@ -392,8 +391,8 @@ export class EmployeesComponent implements OnInit {
   }
 
   // Cập nhật trạng thái nhân viên
-  updateStatus(id: number, isActive: boolean): void {
-    this.employeeService.updateStatus(id, isActive)
+  updateStatus(id: number, status: 'ACTIVE' | 'INACTIVE'): void {
+    this.employeeService.updateStatus(id, status)
       .pipe(
         catchError(error => {
           console.error('Lỗi khi cập nhật trạng thái nhân viên:', error);
@@ -402,7 +401,7 @@ export class EmployeesComponent implements OnInit {
         })
       )
       .subscribe(() => {
-        const statusText = isActive ? 'đang làm việc' : 'đã nghỉ việc';
+        const statusText = status === 'ACTIVE' ? 'đang làm việc' : 'đã nghỉ việc';
         this.showNotification(`Nhân viên đã được cập nhật trạng thái: ${statusText}`, 'success');
         this.loadEmployees();
       });

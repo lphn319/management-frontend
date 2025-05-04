@@ -14,28 +14,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { CustomerDialogComponent } from './customer-dialog/customer-dialog.component';
-
-// Interfaces
-interface Customer {
-  id: number;
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  membership: string;
-  points: number;
-  orderCount: number;
-  totalSpent: number;
-  status: 'active' | 'inactive';
-  registeredAt: Date;
-}
-
-interface CustomerStats {
-  total: number;
-  active: number;
-  orders: number;
-  revenue: number;
-}
+import { Customer, CustomerStats } from './models/customer.model';
 
 @Component({
   selector: 'app-customers',

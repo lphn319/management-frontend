@@ -8,8 +8,8 @@
             <!-- Tên nhà cung cấp -->
             <mat-form-field appearance="outline">
                 <mat-label>Tên nhà cung cấp</mat-label>
-                <input matInput formControlName="name" placeholder="Nhập tên nhà cung cấp">
-                <mat-error *ngIf="supplierForm.get('name')?.hasError('required')">
+                <input matInput formControlName="companyName" placeholder="Nhập tên nhà cung cấp">
+                <mat-error *ngIf="supplierForm.get('companyName')?.hasError('required')">
                     Tên nhà cung cấp là bắt buộc
                 </mat-error>
             </mat-form-field>
@@ -39,8 +39,8 @@
             <mat-form-field appearance="outline">
                 <mat-label>Trạng thái</mat-label>
                 <mat-select formControlName="status">
-                    <mat-option value="active">Đang hoạt động</mat-option>
-                    <mat-option value="inactive">Tạm ngưng</mat-option>
+                    <mat-option value="ACTIVE">Đang hoạt động</mat-option>
+                    <mat-option value="INACTIVE">Tạm ngưng</mat-option>
                 </mat-select>
                 <mat-error *ngIf="supplierForm.get('status')?.hasError('required')">
                     Trạng thái là bắt buộc

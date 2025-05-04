@@ -11,9 +11,11 @@
                     <mat-form-field appearance="outline">
                         <mat-label>Nhà cung cấp</mat-label>
                         <mat-select formControlName="supplier" [disabled]="viewOnly">
-                            <mat-option *ngFor="let supplier of data.suppliers" [value]="supplier.id">
-                                {{ supplier.name }}
+                            @for (supplier of data.suppliers; track supplier.id) {
+                            <mat-option [value]="supplier.id">
+                                {{ supplier.companyName }}
                             </mat-option>
+                            }
                         </mat-select>
                         <mat-error *ngIf="importForm.get('supplier')?.hasError('required')">
                             Nhà cung cấp là bắt buộc
@@ -24,9 +26,11 @@
                     <mat-form-field appearance="outline">
                         <mat-label>Nhân viên phụ trách</mat-label>
                         <mat-select formControlName="employee" [disabled]="viewOnly">
-                            <mat-option *ngFor="let employee of data.employees" [value]="employee.id">
+                            @for (employee of data.employees; track employee.id) {
+                            <mat-option [value]="employee.id">
                                 {{ employee.name }}
                             </mat-option>
+                            }
                         </mat-select>
                         <mat-error *ngIf="importForm.get('employee')?.hasError('required')">
                             Nhân viên phụ trách là bắt buộc
@@ -59,16 +63,18 @@
                     <div class="action-col" *ngIf="!viewOnly"></div>
                 </div>
 
-                <div class="product-item" *ngFor="let product of productsFormArray.controls; let i = index"
-                    [formGroupName]="i">
+                @for (product of productsFormArray.controls; track $index; let i = $index) {
+                <div class="product-item" [formGroupName]="i">
                     <div class="product-col">
                         <mat-form-field appearance="outline">
                             <mat-label>Sản phẩm</mat-label>
                             <mat-select formControlName="product" [disabled]="viewOnly"
                                 (selectionChange)="onProductChange(i)">
-                                <mat-option *ngFor="let product of data.products" [value]="product.id">
+                                @for (product of data.products; track product.id) {
+                                <mat-option [value]="product.id">
                                     {{ product.name }}
                                 </mat-option>
+                                }
                             </mat-select>
                         </mat-form-field>
                     </div>
@@ -97,6 +103,7 @@
                         </button>
                     </div>
                 </div>
+                }
 
                 <div class="add-product" *ngIf="!viewOnly">
                     <button mat-stroked-button type="button" color="primary" (click)="addProduct()">

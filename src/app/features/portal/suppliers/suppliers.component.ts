@@ -1,155 +1,146 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatTableModule } from '@angular/material/table';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.component';
-
-// Interface cho nhà cung cấp
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Supplier {
-  id: number;
-  name: string;
-  description: string;
-  email: string;
-  phone: string;
-  address: string;
-  status: 'active' | 'inactive';
-  logo: string;
-  categories: Category[];
-}
+import { SupplierService } from './services/supplier.service';
+import { Supplier, SupplierRequest, Category } from './models/supplier.model';
+import { finalize } from 'rxjs';
+import { Page } from '../../../core/models/page.model';
+import { CategoryService } from '../categories/services/category.service';
 
 @Component({
   selector: 'app-suppliers',
-  standalone: true,
+  templateUrl: './suppliers.component.html',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatCardModule,
-    MatChipsModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatMenuModule,
     MatPaginatorModule,
-    MatTableModule
-  ],
-  templateUrl: './suppliers.component.html',
-  styleUrl: './suppliers.component.scss'
+    MatTableModule,
+    MatSnackBarModule,
+    MatButtonModule,
+    MatInputModule,
+    MatCardModule,
+    MatMenuModule,
+    MatChipsModule,
+    MatProgressSpinnerModule,
+    MatSortModule,],
+  styleUrls: ['./suppliers.component.scss'],
+  standalone: true
 })
 export class SuppliersComponent implements OnInit {
   displayedColumns: string[] = ['logo', 'name', 'email', 'phone', 'address', 'status', 'categories', 'actions'];
-  suppliers = new MatTableDataSource<Supplier>();
+  suppliers = new MatTableDataSource<Supplier>([]);
+
+  // Thêm các thuộc tính để quản lý phân trang
+  supplierPage: Page<Supplier> | null = null;
+  pageSize = 10;
+  pageIndex = 0;
+  totalItems = 0;
+  sortBy = 'companyName';
+  sortDirection = 'asc';
+  searchKeyword = '';
+
+  isLoading = false;
+  error: string | null = null;
+
+  // Danh sách danh mục
+  categories: Category[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private supplierService: SupplierService,
+    private categoryService: CategoryService
   ) { }
 
   ngOnInit(): void {
-    this.loadSuppliers();
+    this.loadCategories();
+    this.loadSuppliersPaginated();
   }
 
   ngAfterViewInit() {
-    this.suppliers.paginator = this.paginator;
+    if (this.paginator) {
+      this.suppliers.paginator = this.paginator;
+    }
   }
 
-  // Mock dữ liệu nhà cung cấp - trong thực tế sẽ được lấy từ API
-  loadSuppliers(): void {
-    const mockSuppliers: Supplier[] = [
-      {
-        id: 1,
-        name: 'Samsung Electronics',
-        description: 'Nhà cung cấp hàng đầu về thiết bị điện tử và công nghệ',
-        email: 'contact@samsung.com',
-        phone: '(+84) 28 3821 9999',
-        address: 'Tòa nhà Samsung, 53 Lê Đại Hành, Hai Bà Trưng, Hà Nội',
-        status: 'active',
-        logo: 'assets/images/samsung-logo.png',
-        categories: [
-          { id: 1, name: 'Điện thoại' },
-          { id: 2, name: 'Laptop' },
-          { id: 5, name: 'Phụ kiện' }
-        ]
+  // Tải danh sách danh mục
+  loadCategories(): void {
+    this.categoryService.getAll().subscribe({
+      next: (categories) => {
+        this.categories = categories;
       },
-      {
-        id: 2,
-        name: 'Apple Việt Nam',
-        description: 'Đại diện chính thức của Apple tại Việt Nam',
-        email: 'info@apple.vn',
-        phone: '(+84) 24 3974 3838',
-        address: 'Tầng 15, Tòa nhà Capital Place, 29 Liễu Giai, Ba Đình, Hà Nội',
-        status: 'active',
-        logo: 'assets/images/apple-logo.png',
-        categories: [
-          { id: 1, name: 'Điện thoại' },
-          { id: 2, name: 'Laptop' },
-          { id: 4, name: 'Đồng hồ thông minh' }
-        ]
-      },
-      {
-        id: 3,
-        name: 'Dell Việt Nam',
-        description: 'Chuyên cung cấp máy tính, laptop và thiết bị văn phòng',
-        email: 'dell@vn.dell.com',
-        phone: '(+84) 28 3997 3888',
-        address: 'Tầng 6, Tòa nhà Lim Tower, 29-31 Tôn Đức Thắng, Quận 1, TP.HCM',
-        status: 'active',
-        logo: 'assets/images/dell-logo.png',
-        categories: [
-          { id: 2, name: 'Laptop' },
-          { id: 5, name: 'Phụ kiện' }
-        ]
-      },
-      {
-        id: 4,
-        name: 'Logitech Vietnam',
-        description: 'Nhà cung cấp phụ kiện máy tính và thiết bị ngoại vi',
-        email: 'info@logitech.vn',
-        phone: '(+84) 28 3821 5555',
-        address: 'Tầng 8, Tòa nhà Bitexco, 19-25 Nguyễn Huệ, Quận 1, TP.HCM',
-        status: 'inactive',
-        logo: 'assets/images/logitech-logo.png',
-        categories: [
-          { id: 3, name: 'Tai nghe' },
-          { id: 5, name: 'Phụ kiện' }
-        ]
-      },
-      {
-        id: 5,
-        name: 'Sony Vietnam',
-        description: 'Nhà phân phối chính thức sản phẩm âm thanh và hình ảnh Sony',
-        email: 'support@sony.com.vn',
-        phone: '(+84) 28 3839 1111',
-        address: 'Tầng 4, Tòa nhà Exchange Tower, 1 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM',
-        status: 'active',
-        logo: 'assets/images/sony-logo.png',
-        categories: [
-          { id: 3, name: 'Tai nghe' },
-          { id: 5, name: 'Phụ kiện' }
-        ]
+      error: (error) => {
+        console.error('Lỗi khi tải danh sách danh mục:', error);
       }
-    ];
+    });
+  }
 
-    this.suppliers.data = mockSuppliers;
+  // Tải danh sách nhà cung cấp phân trang
+  loadSuppliersPaginated(): void {
+    this.isLoading = true;
+    this.error = null;
+
+    this.supplierService.getSuppliersPaginated(
+      this.pageIndex,
+      this.pageSize,
+      this.sortBy,
+      this.sortDirection,
+      this.searchKeyword
+    )
+      .pipe(
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (page) => {
+          this.supplierPage = page;
+          this.suppliers.data = page.content;
+          this.totalItems = page.totalElements;
+        },
+        error: (error) => {
+          console.error('Lỗi khi tải danh sách nhà cung cấp:', error);
+          this.error = 'Không thể tải danh sách nhà cung cấp. Vui lòng thử lại sau.';
+          this.showNotification(this.error, 'error');
+        }
+      });
+  }
+
+  // Xử lý sự kiện thay đổi trang
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadSuppliersPaginated();
+  }
+
+  // Xử lý sự kiện tìm kiếm
+  onSearch(keyword: string): void {
+    this.searchKeyword = keyword;
+    this.pageIndex = 0; // Reset về trang đầu tiên khi tìm kiếm
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadSuppliersPaginated();
+  }
+
+  // Xử lý sự kiện sắp xếp
+  onSort(sortEvent: Sort): void {
+    this.sortBy = sortEvent.active;
+    this.sortDirection = sortEvent.direction || 'asc';
+    this.pageIndex = 0; // Reset về trang đầu tiên khi sắp xếp
+    this.loadSuppliersPaginated();
   }
 
   // Mở dialog thêm/sửa nhà cung cấp
@@ -158,41 +149,98 @@ export class SuppliersComponent implements OnInit {
       width: '800px',
       data: {
         supplier: supplier,
-        categories: [
-          { id: 1, name: 'Điện thoại' },
-          { id: 2, name: 'Laptop' },
-          { id: 3, name: 'Tai nghe' },
-          { id: 4, name: 'Đồng hồ thông minh' },
-          { id: 5, name: 'Phụ kiện' }
-        ]
+        categories: this.categories
       }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.showNotification(
-          supplier ? 'Cập nhật nhà cung cấp thành công' : 'Thêm nhà cung cấp thành công',
-          'success'
-        );
-        this.loadSuppliers(); // Refresh dữ liệu
+        this.isLoading = true;
+
+        // Chuẩn bị dữ liệu gửi lên API
+        const supplierRequest: SupplierRequest = {
+          companyName: result.companyName,
+          address: result.address,
+          phone: result.phone,
+          email: result.email,
+          description: result.description,
+          logo: result.logo,
+          status: result.status,
+          categoryIds: result.categories?.map((cat: Category) => cat.id)  // Lấy danh sách ID từ categories
+        };
+
+        if (result.id) {
+          // Cập nhật nhà cung cấp
+          this.supplierService.update(result.id, supplierRequest)
+            .pipe(finalize(() => this.isLoading = false))
+            .subscribe({
+              next: () => {
+                this.showNotification('Cập nhật nhà cung cấp thành công', 'success');
+                this.loadSuppliersPaginated(); // Refresh dữ liệu
+              },
+              error: (error) => {
+                this.showNotification('Cập nhật nhà cung cấp thất bại: ' + error.message, 'error');
+              }
+            });
+        } else {
+          // Thêm nhà cung cấp mới
+          this.supplierService.create(supplierRequest)
+            .pipe(finalize(() => this.isLoading = false))
+            .subscribe({
+              next: () => {
+                this.showNotification('Thêm nhà cung cấp thành công', 'success');
+                this.loadSuppliersPaginated(); // Refresh dữ liệu
+              },
+              error: (error) => {
+                this.showNotification('Thêm nhà cung cấp thất bại: ' + error.message, 'error');
+              }
+            });
+        }
       }
     });
   }
 
+  // Cập nhật trạng thái nhà cung cấp
+  updateSupplierStatus(supplier: Supplier, newStatus: 'ACTIVE' | 'INACTIVE'): void {
+    if (!supplier.id) return;
+
+    this.isLoading = true;
+    this.supplierService.updateStatus(supplier.id, newStatus)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: () => {
+          this.showNotification(`Nhà cung cấp đã được ${newStatus === 'ACTIVE' ? 'kích hoạt' : 'tạm ngưng'}`, 'success');
+          supplier.status = newStatus; // Cập nhật UI
+          this.loadSuppliersPaginated(); // Refresh dữ liệu
+        },
+        error: (error) => {
+          this.showNotification(`Không thể cập nhật trạng thái: ${error.message}`, 'error');
+        }
+      });
+  }
+
   // Xóa nhà cung cấp
   deleteSupplier(id: number): void {
-    // Trong thực tế, sẽ gọi API để xóa
     if (confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này?')) {
-      // Filter out the deleted supplier
-      this.suppliers.data = this.suppliers.data.filter(supplier => supplier.id !== id);
-      this.showNotification('Xóa nhà cung cấp thành công', 'success');
+      this.isLoading = true;
+
+      this.supplierService.delete(id)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: () => {
+            this.showNotification('Xóa nhà cung cấp thành công', 'success');
+            this.loadSuppliersPaginated(); // Refresh dữ liệu
+          },
+          error: (error) => {
+            this.showNotification('Xóa nhà cung cấp thất bại: ' + error.message, 'error');
+          }
+        });
     }
   }
 
   // Xem sản phẩm của nhà cung cấp
   viewSupplierProducts(id: number): void {
     // Trong thực tế, sẽ điều hướng đến trang sản phẩm của nhà cung cấp
-    console.log(`Xem sản phẩm của nhà cung cấp ID: ${id}`);
     this.showNotification('Tính năng đang được phát triển', 'info');
   }
 
@@ -202,5 +250,13 @@ export class SuppliersComponent implements OnInit {
       duration: 3000,
       panelClass: [`${type}-snackbar`, 'azura-snackbar']
     });
+  }
+
+  // Helper method để lấy tên danh mục từ ID
+  getCategoryNames(categories?: Category[]): string {
+    if (!categories || categories.length === 0) {
+      return 'Không có';
+    }
+    return categories.map(cat => cat.name).join(', ');
   }
 }

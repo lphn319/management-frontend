@@ -1,88 +1,54 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-}
-
-interface Supplier {
-  id: number;
-  name: string;
-}
-
-interface Employee {
-  id: number;
-  name: string;
-}
-
-interface Import {
-  id?: number;
-  supplier: any;
-  products: any[];
-  quantity: number;
-  price: number;
-  totalAmount: number;
-  employee: any;
-  status: 'completed' | 'processing' | 'cancelled';
-  createdAt?: Date;
-  updatedAt?: Date;
-  notes?: string;
-}
-
-interface DialogData {
-  import?: Import;
-  suppliers?: Supplier[];
-  products?: Product[];
-  employees?: Employee[];
-  viewOnly?: boolean;
-}
+import { MatDividerModule } from '@angular/material/divider';
+import { ImportDetail } from '../models/import.model';
 
 @Component({
   selector: 'app-import-dialog',
+  templateUrl: './import-dialog.component.html',
+  styleUrls: ['./import-dialog.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatButtonModule,
+    FormsModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatIconModule
-  ],
-  templateUrl: './import-dialog.component.html',
-  styleUrl: './import-dialog.component.scss'
+    MatButtonModule,
+    MatIconModule,
+    MatDividerModule
+  ]
 })
 export class ImportDialogComponent implements OnInit {
   importForm!: FormGroup;
   isEditMode: boolean = false;
   viewOnly: boolean = false;
-  productsMap: Map<number, Product> = new Map();
+  productsMap: Map<number, any> = new Map();
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<ImportDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {
-    // Create map of products for quick lookup
+    // Tạo map sản phẩm để tra cứu nhanh
     if (this.data.products) {
-      this.data.products.forEach(product => {
+      this.data.products.forEach((product: any) => {
         this.productsMap.set(product.id, product);
       });
     }
   }
 
   ngOnInit(): void {
-    this.isEditMode = !!this.data.import;
+    this.isEditMode = !!this.data.import?.id;
     this.viewOnly = !!this.data.viewOnly;
     this.initForm();
   }
@@ -100,13 +66,22 @@ export class ImportDialogComponent implements OnInit {
       notes: [this.data.import?.notes || '']
     });
 
-    // Initialize products
-    if (this.data.import && this.data.import.products && this.data.import.products.length > 0) {
-      this.data.import.products.forEach(product => {
-        this.addProduct(product);
+    // Khởi tạo products
+    if (this.data.import && this.data.import.importDetails && this.data.import.importDetails.length > 0) {
+      this.data.import.importDetails.forEach((detail: any) => {
+        this.addProduct({
+          id: detail.product.id,
+          quantity: detail.quantity,
+          price: detail.price
+        });
       });
     } else {
       this.addProduct();
+    }
+
+    // Disable form nếu chỉ xem
+    if (this.viewOnly) {
+      this.importForm.disable();
     }
   }
 
@@ -129,7 +104,7 @@ export class ImportDialogComponent implements OnInit {
     const priceControl = this.productsFormArray.at(index).get('price');
 
     if (productControl && priceControl && productControl.value) {
-      const selectedProduct = this.productsMap.get(productControl.value);
+      const selectedProduct = this.productsMap.get(Number(productControl.value));
       if (selectedProduct) {
         priceControl.setValue(selectedProduct.price);
       }
@@ -180,9 +155,9 @@ export class ImportDialogComponent implements OnInit {
 
       // Prepare product data
       const productDetails = formValue.products.map((p: any) => {
-        const product = this.productsMap.get(p.product);
+        const product = this.productsMap.get(Number(p.product));
         return {
-          id: p.product,
+          id: Number(p.product),
           name: product?.name,
           price: p.price,
           quantity: p.quantity
@@ -190,22 +165,24 @@ export class ImportDialogComponent implements OnInit {
       });
 
       // Find supplier and employee objects
-      const supplier = this.data.suppliers?.find(s => s.id === formValue.supplier);
-      const employee = this.data.employees?.find(e => e.id === formValue.employee);
+      const supplier = this.data.suppliers?.find((s: any) => s.id === Number(formValue.supplier));
+      const employee = this.data.employees?.find((e: any) => e.id === Number(formValue.employee));
 
-      const result: Import = {
+      const result = {
         ...(this.data.import || {}),
         supplier: {
-          id: formValue.supplier,
-          name: supplier?.name
+          id: Number(formValue.supplier),
+          // Hỗ trợ cả name và companyName
+          name: supplier?.name || supplier?.companyName,
+          companyName: supplier?.companyName || supplier?.name
         },
         employee: {
-          id: formValue.employee,
-          name: employee?.name
+          id: Number(formValue.employee),
+          fullName: employee?.fullName || employee?.name,
+          name: employee?.name || employee?.fullName
         },
         products: productDetails,
         quantity: this.calculateTotalQuantity(),
-        price: this.calculateTotalAmount(),
         totalAmount: this.calculateTotalAmount(),
         status: formValue.status,
         notes: formValue.notes,
@@ -215,7 +192,6 @@ export class ImportDialogComponent implements OnInit {
       // Add createdAt if it's a new import
       if (!this.isEditMode) {
         result.createdAt = new Date();
-        result.id = Math.floor(Math.random() * 1000) + 10006;
       }
 
       this.dialogRef.close(result);

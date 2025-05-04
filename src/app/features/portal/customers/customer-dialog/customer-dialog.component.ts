@@ -7,25 +7,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
+import { DialogData } from '../models/customer.model';
 
-interface Customer {
-  id: number;
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  membership: string;
-  points: number;
-  orderCount: number;
-  totalSpent: number;
-  status: 'active' | 'inactive';
-  registeredAt: Date;
-}
-
-interface DialogData {
-  customer?: Customer;
-  viewOnly?: boolean;
-}
 
 @Component({
   selector: 'app-customer-dialog',

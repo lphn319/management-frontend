@@ -176,8 +176,8 @@
                         <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
                         <td mat-cell *matCellDef="let employee">
                             <span class="status-badge"
-                                [ngClass]="{'active': employee.isActive, 'inactive': !employee.isActive}">
-                                {{ getStatusText(employee.isActive) }}
+                                [ngClass]="{'active': employee.status === 'ACTIVE', 'inactive': employee.status === 'INACTIVE'}">
+                                {{ getStatusText(employee.status) }}
                             </span>
                         </td>
                     </ng-container>
@@ -198,13 +198,13 @@
                                     <mat-icon>edit</mat-icon>
                                     <span>Chỉnh sửa</span>
                                 </button>
-                                <button mat-menu-item *ngIf="!employee.isActive"
-                                    (click)="updateStatus(employee.id, true)">
+                                <button mat-menu-item *ngIf="employee.status === 'INACTIVE'"
+                                    (click)="updateStatus(employee.id, 'ACTIVE')">
                                     <mat-icon>person</mat-icon>
                                     <span>Đánh dấu đang làm việc</span>
                                 </button>
-                                <button mat-menu-item *ngIf="employee.isActive"
-                                    (click)="updateStatus(employee.id, false)">
+                                <button mat-menu-item *ngIf="employee.status === 'ACTIVE'"
+                                    (click)="updateStatus(employee.id, 'INACTIVE')">
                                     <mat-icon>person_off</mat-icon>
                                     <span>Đánh dấu đã nghỉ việc</span>
                                 </button>

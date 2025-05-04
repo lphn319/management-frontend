@@ -18,12 +18,12 @@ $shadow-medium: 0 4px 8px rgba(33, 150, 243, 0.12); // Azura shadow
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 10px; // giảm khoảng cách giữa các hàng
     animation: fade-in 0.4s $transition-function;
 
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 8px; // giảm gap cho mobile
     }
 
     .full-width {
@@ -45,12 +45,13 @@ $shadow-medium: 0 4px 8px rgba(33, 150, 243, 0.12); // Azura shadow
 
 h2.mat-dialog-title {
     font-size: 22px;
-    font-weight: 500;
+    font-weight: 400; // không in đậm
     color: $primary-color; // Azura primary color
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 2px solid rgba($primary-color, 0.2);
     letter-spacing: 0.3px;
+    text-transform: none; // giữ chữ thường
 }
 
 mat-form-field {
@@ -132,14 +133,17 @@ textarea {
     resize: vertical;
     @include transition(border-color);
     line-height: 1.5;
-    scrollbar-width: none;
-    /* Firefox */
-    -ms-overflow-style: none;
-    /* IE and Edge */
+    scrollbar-width: none; // Firefox
+    -ms-overflow-style: none; // IE and Edge
 
     &::-webkit-scrollbar {
-        display: none;
-        /* Chrome, Safari, Opera */
+        display: none; // Chrome, Safari, Opera
+    }
+
+    // Ẩn scrollbar cho textarea trên tất cả trình duyệt
+    & {
+        overflow: -moz-scrollbars-none; // Firefox cũ
+        -ms-overflow-style: none; // IE 10+
     }
 
     &:focus {
@@ -153,7 +157,7 @@ mat-dialog-content {
     max-width: 800px;
     max-height: 75vh;
     overflow-x: hidden;
-    padding: 8px 24px 16px;
+    padding: 8px 48px 16px; // tăng padding trái/phải
     scrollbar-width: none;
     /* Firefox */
     -ms-overflow-style: none;
@@ -167,7 +171,7 @@ mat-dialog-content {
     @media (max-width: 768px) {
         min-width: auto;
         max-width: 95vw;
-        padding: 8px 16px;
+        padding: 8px 24px; // tăng padding cho mobile
     }
 }
 

@@ -53,7 +53,6 @@ export class AuthService {
     // Đảm bảo rememberMe không phải là undefined
     const rememberMe = credentials.rememberMe === true;
 
-    // Tạo payload chỉ với email và password nếu backend không hỗ trợ rememberMe
     const loginPayload = {
       email: credentials.email,
       password: credentials.password,

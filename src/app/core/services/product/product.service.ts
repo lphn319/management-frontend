@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Product, ProductRequest } from '../models/product';
-import { ApiService } from '../../../../core/services/api/api.service';
-import { BaseService } from '../../../../core/services/base/base.service';
+import { Product, ProductRequest } from '../../models/product';
+import { ApiService } from '../api/api.service';
+import { BaseService } from '../base/base.service';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { HttpParams } from '@angular/common/http';
-import { Page } from '../../../../core/models/page.model';
+import { Page } from '../../models/page.model';
 
 @Injectable({
   providedIn: 'root'

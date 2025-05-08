@@ -14,7 +14,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { CustomerDialogComponent } from './customer-dialog/customer-dialog.component';
-import { Customer, CustomerStats } from './models/customer.model';
+import { Customer, CustomerStats } from '../../../core/models/customer.model';
 
 @Component({
   selector: 'app-customers',

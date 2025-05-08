@@ -1,5 +1,5 @@
-import { Department } from "../../departments/models/department.model";
-import { Role } from "../../roles/models/role.model";
+import { Department } from "./department.model";
+import { Role } from "./role.model";
 
 export interface Employee {
     id: number;

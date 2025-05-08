@@ -11,9 +11,9 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTabsModule } from '@angular/material/tabs';
-import { DialogData } from '../models/employee.model';
-import { Department } from '../../departments/models/department.model';
-import { Role } from '../../roles/models/role.model';
+import { DialogData } from '../../../../core/models/employee.model';
+import { Department } from '../../../../core/models/department.model';
+import { Role } from '../../../../core/models/role.model';
 
 @Component({
   selector: 'app-employee-dialog',

@@ -6,7 +6,7 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Brand, DialogData } from '../models/brand.model';
+import { Brand, DialogData } from '../../../../core/models/brand.model';
 import { ApiResponse } from '../../../../core/models/api-response.model';
 
 @Component({

@@ -1,5 +1,14 @@
+import { Product } from "../../products/models/product";
+
 export interface ImportDetailRequest {
-    productId: number;  // Đảm bảo là number, không phải number | null
+    productId: number;
+    quantity: number;
+    price: number;
+}
+
+export interface ImportDetail {
+    id?: number;
+    product: Product;
     quantity: number;
     price: number;
 }

@@ -75,12 +75,11 @@ export class CategoryDialogComponent implements OnInit {
         description: formData.description,
         parentId: formData.parentId,
         status: formData.status,
-        productCount: this.data.category?.productCount || 0  // Giữ nguyên số lượng sản phẩm hoặc mặc định là 0
+        productCount: this.data.category?.productCount || 0
       };
 
       this.dialogRef.close(result);
     } else {
-      // Hiển thị lỗi và focus vào trường đầu tiên có lỗi
       const formControls = this.categoryForm.controls;
       for (const controlName in formControls) {
         if (formControls[controlName].invalid) {
@@ -115,7 +114,6 @@ export class CategoryDialogComponent implements OnInit {
     return '';
   }
 
-  // Kiểm tra xem control có lỗi và đã touched hoặc đã submit chưa
   isFieldInvalid(controlName: string): boolean {
     const control = this.categoryForm.get(controlName);
     return !!(control && control.invalid && (control.touched || this.submitAttempted));

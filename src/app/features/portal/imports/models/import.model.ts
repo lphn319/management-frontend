@@ -1,36 +1,11 @@
-export interface Product {
-    id: number;
-    name: string;
-    price: number;
-    quantity?: number;
-}
-
-export interface Supplier {
-    id: number;
-    name?: string;
-    companyName?: string;
-    phone?: string;
-    logo?: string;
-}
-
-export interface User {
-    id: number;
-    fullName?: string;
-    name?: string;
-    email?: string;
-}
-
-export interface ImportDetail {
-    id?: number;
-    product: Product;
-    quantity: number;
-    price: number;
-}
+import { Employee } from "../../employees/models/employee.model";
+import { Supplier } from "../../suppliers/models/supplier.model";
+import { ImportDetail } from "./import-detail.model";
 
 export interface Import {
     id?: number;
     supplier: Supplier;
-    employee: User;
+    employee: Employee;
     importDetails: ImportDetail[];
     quantity: number;
     totalAmount: number;

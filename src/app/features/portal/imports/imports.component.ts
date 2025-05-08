@@ -12,9 +12,9 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
 import { ImportDialogComponent } from './import-dialog/import-dialog.component';
-import { Import, ImportDetail } from './models/import.model';
+import { Import } from './models/import.model';
+import { ImportDetail } from './models/import-detail.model';
 import { ImportRequest } from './models/import.request'; import { ImportService } from './services/import.service';
 import { SupplierService } from '../suppliers/services/supplier.service';
 import { ProductService } from '../products/services/product.service';
@@ -60,7 +60,7 @@ export class ImportsComponent implements OnInit {
   sortDirection = 'desc';
   filterStatus: string | null = null;
   filterSupplierId: number | null = null;
-  filterSupplier: number | null = null; // Thêm thuộc tính này để khớp với template
+  filterSupplier: number | null = null;
   filterParams: any = {};
   searchTerm: string = '';
 
@@ -93,7 +93,7 @@ export class ImportsComponent implements OnInit {
     forkJoin({
       suppliers: this.supplierService.getAll(),
       products: this.productService.getAll(),
-      employees: this.employeeService.getAll() // Hoặc bạn có thể dùng getAllEmployees() nếu có
+      employees: this.employeeService.getAll()
     })
       .pipe(
         finalize(() => this.isLoadingMaster = false)
@@ -110,7 +110,6 @@ export class ImportsComponent implements OnInit {
           console.error('Lỗi khi tải dữ liệu:', error);
           this.error = 'Không thể tải dữ liệu. Vui lòng thử lại sau.';
 
-          // Tự động tải danh sách đơn nhập hàng dù có lỗi
           this.loadImports();
         }
       });
@@ -135,6 +134,7 @@ export class ImportsComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
+          // Cần xử lý thêm dữ liệu nếu importDetails có sẵn trong response
           this.imports.data = response.content;
           this.totalItems = response.totalElements;
         },
@@ -204,16 +204,16 @@ export class ImportsComponent implements OnInit {
         this.isLoading = true;
 
         // Chuẩn bị dữ liệu gửi lên API
-        const importRequest: ImportRequest = this.prepareImportRequest(result);
+        const importRequest = this.prepareImportRequest(result);
 
-        if (result.id) {
+        if (importData?.id) {
           // Cập nhật đơn nhập hàng
-          this.importService.update(result.id, importRequest)
+          this.importService.update(importData.id, importRequest)
             .pipe(finalize(() => this.isLoading = false))
             .subscribe({
               next: () => {
                 this.showNotification('Cập nhật đơn nhập hàng thành công', 'success');
-                this.loadImports(); // Refresh dữ liệu
+                this.loadImports();
               },
               error: (error) => {
                 this.showNotification('Cập nhật đơn nhập hàng thất bại: ' + error.message, 'error');
@@ -226,7 +226,7 @@ export class ImportsComponent implements OnInit {
             .subscribe({
               next: () => {
                 this.showNotification('Tạo đơn nhập hàng thành công', 'success');
-                this.loadImports(); // Refresh dữ liệu
+                this.loadImports();
               },
               error: (error) => {
                 this.showNotification('Tạo đơn nhập hàng thất bại: ' + error.message, 'error');
@@ -310,14 +310,15 @@ export class ImportsComponent implements OnInit {
   }
 
   // Chuẩn bị dữ liệu gửi lên API
+  // imports.component.ts
   prepareImportRequest(formData: any): ImportRequest {
     return {
-      supplierId: formData.supplier.id || formData.supplier,
-      employeeId: formData.employee.id || formData.employee,
+      supplierId: formData.supplierId || formData.supplier?.id,
+      employeeId: formData.employeeId || formData.employee?.id,
       status: formData.status,
       notes: formData.notes,
-      importDetails: formData.products.map((item: any) => ({
-        productId: item.product.id || item.product,
+      importDetails: formData.importDetails || formData.products?.map((item: any) => ({
+        productId: item.product?.id || item.product || item.productId,
         quantity: item.quantity,
         price: item.price
       }))

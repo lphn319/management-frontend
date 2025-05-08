@@ -90,10 +90,10 @@
                     <th mat-header-cell *matHeaderCellDef>Nhà cung cấp</th>
                     <td mat-cell *matCellDef="let import">
                         <div class="supplier-info">
-                            <div class="supplier-logo">
+                            <!-- <div class="supplier-logo">
                                 <img [src]="import.supplier.logo" [alt]="import.supplier.companyName"
                                     onerror="this.src='assets/images/placeholder.jpg'">
-                            </div>
+                            </div> -->
                             <div class="supplier-detail">
                                 <div class="supplier-name">{{ import.supplier.companyName }}</div>
                                 <div class="supplier-contact">{{ import.supplier.phone }}</div>
@@ -106,7 +106,7 @@
                 <ng-container matColumnDef="products">
                     <th mat-header-cell *matHeaderCellDef>Sản phẩm</th>
                     <td mat-cell *matCellDef="let import">
-                        <div class="product-count">{{ import.products.length }} sản phẩm</div>
+                        <div class="product-count">{{ import.importDetails?.length || 0 }} sản phẩm</div>
                     </td>
                 </ng-container>
 
@@ -127,7 +127,7 @@
                 <!-- Cột nhân viên -->
                 <ng-container matColumnDef="employee">
                     <th mat-header-cell *matHeaderCellDef>Nhân viên</th>
-                    <td mat-cell *matCellDef="let import">{{ import.employee.fullName }}</td>
+                    <td mat-cell *matCellDef="let import">{{ import.employee.name }}</td>
                 </ng-container>
 
                 <!-- Cột trạng thái -->

@@ -47,9 +47,9 @@ export class ImportService extends BaseService<Import> {
       }
     }
 
-    return this.apiService.get<Page<Import>>(`${this.endpoint}/paginated`, params)
+    return this.apiService.get<any>(`${this.endpoint}/paginated`, params)
       .pipe(
-        map(response => response.data),
+        map(response => response.data), // Truy cập data từ response
         catchError(error => {
           console.error('Lỗi khi lấy danh sách đơn nhập hàng phân trang:', error);
           return of({

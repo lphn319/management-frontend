@@ -8,8 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
-import { ImportDetail } from '../models/import.model';
-
+import { ImportDetail } from '../models/import-detail.model';
 @Component({
   selector: 'app-import-dialog',
   templateUrl: './import-dialog.component.html',
@@ -153,48 +152,29 @@ export class ImportDialogComponent implements OnInit {
     if (this.importForm.valid) {
       const formValue = this.importForm.value;
 
-      // Prepare product data
-      const productDetails = formValue.products.map((p: any) => {
-        const product = this.productsMap.get(Number(p.product));
+      // Chuyển đổi từ sản phẩm trong form sang importDetails
+      const importDetails = formValue.products.map((p: any) => {
         return {
-          id: Number(p.product),
-          name: product?.name,
-          price: p.price,
-          quantity: p.quantity
+          productId: Number(p.product),
+          quantity: p.quantity,
+          price: p.price
         };
       });
 
-      // Find supplier and employee objects
+      // Tìm supplier và employee
       const supplier = this.data.suppliers?.find((s: any) => s.id === Number(formValue.supplier));
       const employee = this.data.employees?.find((e: any) => e.id === Number(formValue.employee));
 
-      const result = {
-        ...(this.data.import || {}),
-        supplier: {
-          id: Number(formValue.supplier),
-          // Hỗ trợ cả name và companyName
-          name: supplier?.name || supplier?.companyName,
-          companyName: supplier?.companyName || supplier?.name
-        },
-        employee: {
-          id: Number(formValue.employee),
-          fullName: employee?.fullName || employee?.name,
-          name: employee?.name || employee?.fullName
-        },
-        products: productDetails,
-        quantity: this.calculateTotalQuantity(),
-        totalAmount: this.calculateTotalAmount(),
+      // Chuẩn bị dữ liệu request theo đúng cấu trúc ImportRequest
+      const importRequest = {
+        supplierId: Number(formValue.supplier),
+        employeeId: Number(formValue.employee),
         status: formValue.status,
         notes: formValue.notes,
-        updatedAt: new Date()
+        importDetails: importDetails
       };
 
-      // Add createdAt if it's a new import
-      if (!this.isEditMode) {
-        result.createdAt = new Date();
-      }
-
-      this.dialogRef.close(result);
+      this.dialogRef.close(importRequest);
     }
   }
 

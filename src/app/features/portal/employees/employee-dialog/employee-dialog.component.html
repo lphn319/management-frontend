@@ -103,9 +103,11 @@
                     <mat-form-field appearance="outline">
                         <mat-label>Vai trò</mat-label>
                         <mat-select formControlName="roleId" [disabled]="viewOnly">
-                            <mat-option *ngFor="let role of roles" [value]="role.id">
-                                {{ role.name }}
-                            </mat-option>
+                            <ng-container *ngFor="let role of roles">
+                                <mat-option [value]="role.id" *ngIf="role.name !== 'ADMIN' && role.name !== 'CUSTOMER'">
+                                    {{ role.name }}
+                                </mat-option>
+                            </ng-container>
                         </mat-select>
                         <mat-error *ngIf="isFieldInvalid('roleId')">
                             Vai trò là bắt buộc

@@ -27,7 +27,7 @@ export interface EmployeeRequest {
     gender: string;
     departmentId: number;
     roleId: number;
-    status?: 'ACTIVE' | 'INACTIVE'; // Thêm trường status
+    status?: 'ACTIVE' | 'INACTIVE';
 }
 
 export interface EmployeeStats {

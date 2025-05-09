@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from '../../features/auth/services/auth.service';
-import { UserRole } from '../../features/auth/models/user.model';
+import { UserRole } from '../models/user.model';
 
 // Guard xác thực - kiểm tra xem người dùng đã đăng nhập hay chưa
 // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập

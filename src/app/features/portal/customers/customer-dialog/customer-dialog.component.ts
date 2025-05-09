@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
-import { DialogData } from '../models/customer.model';
+import { DialogData } from '../../../../core/models/customer.model';
 
 
 @Component({

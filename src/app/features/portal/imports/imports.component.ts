@@ -13,12 +13,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ImportDialogComponent } from './import-dialog/import-dialog.component';
-import { Import } from './models/import.model';
-import { ImportDetail } from './models/import-detail.model';
-import { ImportRequest } from './models/import.request'; import { ImportService } from './services/import.service';
-import { SupplierService } from '../suppliers/services/supplier.service';
-import { ProductService } from '../products/services/product.service';
-import { EmployeeService } from '../employees/services/employee.service';
+import { Import } from '@angular/cdk/schematics';
+import { ImportRequest } from '../../../core/models/import.request';
+import { ImportService } from '../../../core/services/import/import.service';
+import { SupplierService } from '../../../core/services/supplier/supplier.service';
+import { ProductService } from '../../../core/services/product/product.service';
+import { EmployeeService } from '../../../core/services/employee/employee.service';
 import { finalize, forkJoin } from 'rxjs';
 
 @Component({

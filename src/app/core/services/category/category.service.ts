@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ApiService } from '../../../../core/services/api/api.service';
-import { BaseService } from '../../../../core/services/base/base.service';
+import { ApiService } from '../api/api.service';
+import { BaseService } from '../base/base.service';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
-import { Category } from '../models/category.model';
-import { Page } from '../../../../core/models/page.model';
+import { Category } from '../../models/category.model';
+import { Page } from '../../models/page.model';
 import { HttpParams } from '@angular/common/http';
 
 @Injectable({

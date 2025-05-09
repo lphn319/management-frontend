@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ApiService } from '../../../../core/services/api/api.service';
-import { BaseService } from '../../../../core/services/base/base.service';
-import { Role, RoleRequest } from '../models/role.model';
+import { ApiService } from '../api/api.service';
+import { BaseService } from '../base/base.service';
+import { Role, RoleRequest } from '../../models/role.model';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 

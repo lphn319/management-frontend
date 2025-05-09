@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Brand } from '../models/brand.model';
-import { ApiService } from '../../../../core/services/api/api.service';
-import { BaseService } from '../../../../core/services/base/base.service';
-import { Page } from '../../../../core/models/page.model';
+import { Brand } from '../../models/brand.model';
+import { ApiService } from '../api/api.service';
+import { BaseService } from '../base/base.service';
+import { Page } from '../../models/page.model';
 import { HttpParams } from '@angular/common/http';
 
 @Injectable({

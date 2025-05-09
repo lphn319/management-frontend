@@ -13,11 +13,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.component';
-import { SupplierService } from './services/supplier.service';
-import { Supplier, SupplierRequest, Category } from './models/supplier.model';
+import { SupplierService } from '../../../core/services/supplier/supplier.service';
+import { Supplier, SupplierRequest } from '../../../core/models/supplier.model';
 import { finalize } from 'rxjs';
 import { Page } from '../../../core/models/page.model';
-import { CategoryService } from '../categories/services/category.service';
+import { CategoryService } from '../../../core/services/category/category.service';
 
 @Component({
   selector: 'app-suppliers',

@@ -1,4 +1,4 @@
-import { Employee } from "../../employees/models/employee.model";
+import { Employee } from "../../../../core/models/employee.model";
 import { Supplier } from "../../suppliers/models/supplier.model";
 import { ImportDetail } from "./import-detail.model";
 

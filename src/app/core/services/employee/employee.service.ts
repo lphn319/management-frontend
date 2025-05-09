@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ApiService } from '../../../../core/services/api/api.service';
-import { BaseService } from '../../../../core/services/base/base.service';
-import { Employee, EmployeeRequest, EmployeeStats } from '../models/employee.model';
+import { ApiService } from '../api/api.service';
+import { BaseService } from '../base/base.service';
+import { Employee, EmployeeRequest, EmployeeStats } from '../../models/employee.model';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { HttpParams } from '@angular/common/http';
